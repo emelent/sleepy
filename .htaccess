@@ -1,0 +1,21 @@
+RewriteEngine On
+
+#1 parameters 
+RewriteRule ^([a-zA-Z0-9_-]+)$ ?p1=$1
+RewriteRule ^([a-zA-Z0-9_-]+)/$ ?p1=$1
+
+#2 parameters
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$ ?p1=$1&p2=$2
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ ?p1=$1&p2=$2
+
+#3 parameters
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$ ?p1=$1&p2=$2&p3=$3
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ ?p1=$1&p2=$2&p3=$3
+
+#4 parameters
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$ ?p1=$1&p2=$2&p3=$3&p4=$4
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ ?p1=$1&p2=$2&p3=$3&p4=$4
+
+#5 parameters
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$ ?p1=$1&p2=$2&p3=$3&p4=$4&p5=$5
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ ?p1=$1&p2=$2&p3=$3&p4=$4&p5=$5
