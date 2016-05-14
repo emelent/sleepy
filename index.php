@@ -5,9 +5,12 @@ require_once 'App.php';
 $app= new App();
 
 $app->route([
-  'bye/*/'      =>  function($app){
-                    $app->success('Goodbye ' . $_GET['p2']);
+  'bye/:name/'      =>  function($app){
+                    $app->success('Goodbye ' . $app->params['name']);
                   },
+  'routes/'       =>  function($app){
+                        $app->success($app->getRoutes());
+                      },
   'morning/'  =>  function($app){
                     $app->success('Lovely morning we have today');
                   },
