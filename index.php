@@ -5,8 +5,8 @@ require_once 'App.php';
 $app= new App();
 
 $app->route([
-  'bye/:name/'      =>  function($app){
-                    $app->success('Goodbye ' . $app->params['name']);
+  'bye/:name/:surname/'      =>  function($app){
+                    $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);
                   },
   'routes/'       =>  function($app){
                         $app->success($app->getRoutes());
