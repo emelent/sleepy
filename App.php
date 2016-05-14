@@ -123,6 +123,9 @@ class App{
   }
   public function route($routes){
     foreach($routes as $url => $controller){
+      //always end routing url with '/'
+      if(substr($url, -1, 1) != '/')
+        $url .= '/';
       $exp = explode('/', $url);
       $regex = '/^';
       $first = true;
