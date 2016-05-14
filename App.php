@@ -37,6 +37,7 @@ class App{
   private $controllers = [];
   private $logging = true;
 
+  public $params;
 
   public function __construct(){
     try{
@@ -117,29 +118,38 @@ class App{
     $this->dbm->setLogging($log);
   }
 
+  public function getRoutes(){
+    return array_keys($this->controllers);
+  }
   public function route($routes){
     foreach($routes as $url => $controller){
       $exp = explode('/', $url);
       $regex = '/^';
       $first = true;
+      $count =0;
+      $params = [];
       foreach($exp as $part){
-        if($first){$first = false;}
-        else{$regex .= '\/';}
-
-        if($part == '*'){
+        if($count != 0){$regex .= '\/';}
+        $count ++;
+        if(substr($part, 0, 1) == ':'){
           $regex .= '([a-zA-Z0-9_-]+)';
+          $params[substr($part, 1)] = $count;
+          continue;
+        }elseif($part == '*'){
+          $regex .= '(.)*';
           continue;
         }
         $regex .= $part;
       }
       $regex .= '$/';
       if($controller instanceof Closure){
-        $this->controllers[$regex] = new InjectController($controller);
-      }elseif($controller instanceof Controller){
-        $this->controllers[$regex] = $controller;
-      }else{
+        $controller = new InjectController($controller);
+      }
+      if(!$controller instanceof Controller){
         $this->fail("Invalid object registered as controller");
       }
+      $controller->_setParams($params);
+      $this->controllers[$regex] = $controller;
     }
   }
 
@@ -173,6 +183,8 @@ class App{
       if($controller == null){
         throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
       }
+      //retreive params
+      $this->params = $controller->_getParams();
       // run the method on controller
       $controller->$method($this);
     }

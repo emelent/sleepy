@@ -2,7 +2,8 @@
 require_once 'Config.php';
 
 abstract class Controller{
-
+  
+  private $params;
   public function __construct(){
     $methods = ['delete', 'get', 'post', 'put'];
     foreach($methods as $method){
@@ -23,6 +24,17 @@ abstract class Controller{
     }
   }
 
+  public final function _setParams($params){
+    $this->params = $params;
+  }
+
+  public function _getParams(){
+    foreach($this->params as $key => $val){
+      var_dump($_GET);
+      $this->params[$key] = $_GET["p$val"];
+    }
+    return $this->params;
+  }
 };
 
 
