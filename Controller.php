@@ -30,7 +30,6 @@ abstract class Controller{
 
   public function _getParams(){
     foreach($this->params as $key => $val){
-      var_dump($_GET);
       $this->params[$key] = $_GET["p$val"];
     }
     return $this->params;
