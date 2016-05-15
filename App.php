@@ -123,12 +123,6 @@ class App{
     try{
       if(!isset($_SERVER['REQUEST_METHOD'])){
         throw new KnownException('No request was made to the server', ERR_BAD_REQ);
-        /// following lines used for offline testing
-        //$_SERVER = ['REQUEST_METHOD'=> 'DELETE'];
-        //$_GET = ['arg1' => 'bye'];
-        //$_DELETE = [];
-        //$_PUT = [];
-        //$_POST = [];
       }
       $this->logRequest();
       $method = strtolower($_SERVER['REQUEST_METHOD']);
