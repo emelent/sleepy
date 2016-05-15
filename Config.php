@@ -5,7 +5,7 @@
 
 /* Resource constants*/
 define('ROOT_DIR', dirname(__FILE__) . '/');
-define('HOME_URL', 'http://localhost/api/');
+define('HOME_URL', 'http://localhost/api2/');
 
 /* Database constants*/
 define('DSN', 'mysql');
