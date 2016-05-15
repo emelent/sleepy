@@ -233,7 +233,8 @@ class DbManager{
     $stmnt->setFetchMode(PDO::FETCH_OBJ);
 
     $stmnt->execute($data);
-    $this->log($query, $data);
+    // don't log database reads
+    //$this->log($query, $data);
 
     if($all)
       return $stmnt->fetchAll();
