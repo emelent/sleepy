@@ -1,26 +1,66 @@
 <?php
 
+// ===========================================================================
+//
+//
+// This file contains the class declaration of the DbManager class
+//
+// Please note that any methods or classes beginning with an underscore whether
+// public or private are not meant to be called directly by a user but are for 
+// the inner functioning of the library as a whole.
+//
+//
+// ===========================================================================
+
+
 require_once 'Config.php';
+
+/*
+ * DbManager class used for reading and writing to the database in a secure
+ * and secure and simple manner.
+ */
 class DbManager{
   
+  /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
   private $app;
   private $logging = true;
 
   public function __construct($app, $dsn, $dbhost, $dbname, $dbuser, $dbpass){
-    try{
-      $this::$pdo = new PDO("$dsn:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
-      $this::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }catch(PDOException $e){
-      throw new KnownException('Failed to initialize database => ' . 
-        $e->getMessage(), ERR_DB_ERROR);
+    if($this::$pdo == null){
+      try{
+        $this::$pdo = new PDO("$dsn:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
+        $this::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      }catch(PDOException $e){
+        throw new KnownException('Failed to initialize database => ' . 
+          $e->getMessage(), ERR_DB_ERROR);
+      }
     }
     $this->app = $app;
   }
 
+
+  /*
+   * Returns PDO connection
+   *
+   * @return PDOConnection
+   */
   public static function getPDO(){
     return DbManager::$pdo;
   }
+
+
+  /*
+   * Runs INSERT query on database
+   * e.g
+   *   insert('people', ['name' => 'Ronald', 'age' => 32]);
+   *
+   * @param $table      = String table name
+   * @param $data       = Array key-value store of columns and values
+   *
+   * @throws KnownException
+   * @return null
+   */
 
   public function insert($table, $data){
     $this->verifyData($data);
@@ -34,6 +74,37 @@ class DbManager{
 
     $this->execQuery($query, $data);
   }
+
+
+  /*
+   * Runs SELECT query on database
+   * This does not include the use of "LIKE" or other comparison key words and
+   * only makes use of '='. This maybe added in future iterations.
+   *
+   * @param $table      = String table name
+   *
+   * @param $data       = Array key-value store of columns and values to search
+   *                      for
+   *
+   * @param $select     = Array of columns to select from, default is null which 
+   *                      uses 'SELECT *'
+   *
+   * @param $orderBy    = Array of columns to order the results by, default is
+   *                      null, which does not order the columns.
+   *
+   * @param $orderAsc   = Boolean order in ascending or descending order
+   *                      default is ascending 
+   *
+   * @param $inclusive  = Boolean perform inclusive search(use 'AND' between
+   *                      all search data) or use exclusive search('OR')
+   *                      default is true
+   *
+   * @param $all        = Boolean return fetch all results or fetch first 
+   *                      result, default is true
+   *
+   * @throws KnownException
+   * @return Array | StdObject
+   */
 
   public function fetch(
     $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true, $all=true)
@@ -56,18 +127,22 @@ class DbManager{
     return $this->fetchQuery($query, $data, $all);
   }
 
-  public function fetchQuery($query, $data, $all=True){
-    $stmnt = $this::$pdo->prepare($query);
-    $stmnt->setFetchMode(PDO::FETCH_OBJ);
 
-    $stmnt->execute($data);
-    $this->log($query, $data);
-
-    if($all)
-      return $stmnt->fetchAll();
-    return $stmnt->fetch();
-  }
-
+  /*
+   * Runs DELETE query on database
+   *
+   * @param $table      = String table name
+   *
+   * @param $data       = Array key-value store of columns and values to search
+   *                      for
+   *
+   * @param $inclusive  = Boolean perform inclusive search(use 'AND' between
+   *                      all search data) or use exclusive search('OR')
+   *                      default is true
+   *
+   * @throws KnownException
+   * @return null
+   */
 
   public function delete($table, $data, $inclusive=true){
     $this->verifyData($data);
@@ -78,6 +153,24 @@ class DbManager{
     $this->execQuery($query, $data);
   }
 
+
+  /*
+   * Runs UPDATE query on database
+   *
+   * @param $table      = String table name
+   *
+   * @param $dataOld    = Array key-value store of columns and values to search
+   *                      for
+   * @param $dataNew    = Array key-value store of columns and values to 
+   *                      replace
+   *
+   * @param $inclusive  = Boolean perform inclusive search(use 'AND' between
+   *                      all search data) or use exclusive search('OR')
+   *                      default is true
+   *
+   * @throws KnownException
+   * @return null
+   */
   public function update($table, $dataOld, $dataNew, $inclusive=true){
     $this->verifyData($dataOld);
     $this->verifyData($dataNew);
@@ -104,33 +197,93 @@ class DbManager{
     $this->execQuery($query, array_merge($arrNew, $dataNew));
   }
 
+
+
+  /*
+   * Runs query on database with given data
+   *
+   * @param $query      = String SQL query to be used in prepared statement
+   *                     
+   * @param $data       = Array key-value store of columns and values to use
+   *                      when executing statement
+   *
+   *
+   * @throws KnownException
+   * @return null
+   */
   public function execQuery($query, $data){
     $stmnt = $this::$pdo->prepare($query);
     $stmnt->execute($data);
     $this->log($query, $data);
   }
 
-  public function rawSQL($query){
-    $result = $this::$pdo->query($query);
-    $this->log($query, null);
-    return $result;
+
+  /*
+   * Runs query on database with given data and returns result
+   *
+   * @param $query      = String SQL query to be used in prepared statement
+   *                     
+   * @param $data       = Array key-value store of columns and values to use
+   *                      when executing statement
+   *
+   *
+   * @throws KnownException
+   * @return null
+   */
+  public function fetchQuery($query, $data, $all=True){
+    $stmnt = $this::$pdo->prepare($query);
+    $stmnt->setFetchMode(PDO::FETCH_OBJ);
+
+    $stmnt->execute($data);
+    $this->log($query, $data);
+
+    if($all)
+      return $stmnt->fetchAll();
+    return $stmnt->fetch();
   }
+
+
+  /*
+   * Returns last insert id
+   *
+   * @return id
+   */
+  public function getLastInsertId(){
+    return $this::$pdo->lastInsertId();
+  }
+
+
+  /*
+   * Toggles database logging( the logging of all database writes and deletion)
+   *
+   * @param $log        = boolean
+   *
+   * @return null
+   */
 
   public function setLogging($log){
     $this->logging = $log;
   }
 
+
+  /*
+   * Returns value of db logging toggle
+   *
+   * @return boolean
+   */
   public function getLogging(){
     return $this->logging;
   }
 
-  //public function createTable($table, $data){
-    //$query = "CREATE `$table` (";
-  //}
 
-  //public function dropTable(){
-  //}
-
+  /*
+   * Verifies that the given data is an array
+   *
+   * @param $data     = Array
+   *
+   * @throws KnownException
+   * @return null
+   */
   private function verifyData($data){
     if(gettype($data) != 'array')
       throw new KnownException(
@@ -139,6 +292,18 @@ class DbManager{
       );
   }
 
+
+  /*
+   * Used to form the WHERE clause in a statement given a key value store
+   *
+   * @param $data       = Array key-value store of columns and values to use
+   *                      when executing statement
+   *
+   * @param $inclusive     = Boolean if true uses 'AND' to bind statements
+   *                         and uses 'OR' if false
+   *
+   * @return String
+   */
   private function whereClause($data, $inclusive){
     $bind = ' AND';
     if(!$inclusive){
@@ -158,6 +323,18 @@ class DbManager{
     return $where;
   }
 
+
+  /*
+   * Logs database writes and deletions to database
+   *
+   * @param $query      = String SQL query to be used in prepared statement
+   *                     
+   * @param $data       = Array key-value store of columns and values to use
+   *                      when executing statement
+   *
+   *
+   * @return null
+   */
   private function log($query, $data){
     if(!$this->logging)
       return;

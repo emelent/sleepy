@@ -1,14 +1,36 @@
 <?php
 
+// ===========================================================================
+//
+//
+// This is the contains the declaration of the App object which is the core
+// of the REST api. The API currently only works with json, simply as a matter
+// of preference and ease of use.
+//
+// Please note that any methods or classes beginning with an underscore whether
+// public or private are not meant to be called directly by a user but are for 
+// the inner functioning of the library as a whole.
+//
+//
+// ===========================================================================
+
+
 require_once 'Config.php';
 require_once 'DbManager.php';
 require_once 'Controller.php';
 require_once 'Router.php';
 
+
+// set the header  content type
 header('Content-Type: application/json');
 
+
+/*
+ * App class, core of the library
+ */
 class App{
 
+  /// error code values for debugging
   private static $DEBUG_ERROR_MESSAGES = array(
               ERR_UNK_REQ => "UNKNOWN REQUEST METHOD",
               ERR_BAD_REQ => "INVALID REQUEST FORMAT",
@@ -22,6 +44,7 @@ class App{
               ERR_BAD_ROUTE => "UNMATCHED ROUTE"
   );
 
+  /// output messages for user
   private static $USER_ERROR_MESSAGES = array(
               ERR_UNK_REQ => "Bad request",
               ERR_BAD_REQ => "Bad request",
@@ -34,8 +57,8 @@ class App{
               ERR_DB_ERROR => "Sorry, there was a problem with the server, please try again later."
   );
 
-  private $dbm;
-  private $logging = true;
+  private $dbm;       
+  private $logging = true; //log everything by default
   private $router;
 
   public $params;
@@ -72,12 +95,20 @@ class App{
   }
 
 
+  /*
+   * Logs request to database with various information
+   *
+   * @return null
+   */
+
   private function logRequest(){
     if(!$this->logging)
       return;
     $dbm = $this->dbm;
     $log = $dbm->getLogging();
     $data = ['GET' => $_GET, 'POST' => $_POST];
+    // turn off logging so that writes to logging database are not
+    // logged(that would lead to an endless loop of logging
     $dbm->setLogging(false);
     $dbm->insert(
       'request_logs',
@@ -88,23 +119,58 @@ class App{
         'data'    =>  json_encode($data)
       ]
     );
+    // set db logging to what it was before it was turned off
     $dbm->setLogging($log);
   }
 
 
+
+  /*
+   * Toggles request logging
+   *
+   * @param $log        = boolean
+   *
+   * @return null
+   */
 
   public function setRequestLogging($log){
     $this->logging = $log;
   }
 
 
+  /*
+   * Toggles database logging( the logging of all database writes and deletion)
+   *
+   * @param $log        = boolean
+   *
+   * @return null
+   */
+
   public function setDbLogging($log){
     $this->dbm->setLogging($log);
   }
 
+
+  /*
+   * Returns all the routed paths as an array of regular expressions
+   *
+   * @return Array
+   */
+
   public function getRoutes(){
     return $this->router->getRoutes();
   }
+
+
+  /*
+   * Routes given paths to controllers
+   *
+   * @param $routes = Assoc Array containing key value store of the path 
+   *                  and controller/function
+   *
+   * @throws KnownException
+   * @return null
+   */
 
   public function route($routes){
     $this->router->route($routes);
@@ -260,6 +326,16 @@ class App{
     return -1;
   }
 
+
+  /*
+   * Delegates the request to the appropriate Controller
+   *
+   * @param $method     = Type of request (get, put, post, delete)
+   *
+   * @throws KnownException
+   * @return null
+   */
+
   public function getUserIP(){
     if(isset($_SERVER['REMOTE_ADDR'])){
       return $_SERVER['REMOTE_ADDR'];
@@ -308,10 +384,28 @@ class App{
   }
   
 
+  /*
+   * Delegates the request to the appropriate Controller
+   *
+   * @param $method     = Type of request (get, put, post, delete)
+   *
+   * @throws KnownException
+   * @return null
+   */
+
   public function getDbManager(){
     return $this->dbm;
   }
 
+
+  /*
+   * Delegates the request to the appropriate Controller
+   *
+   * @param $method     = Type of request (get, put, post, delete)
+   *
+   * @throws KnownException
+   * @return null
+   */
 
   public function result($success, $data){
     die(json_encode([
@@ -320,9 +414,29 @@ class App{
     ]) . PHP_EOL);
   }
 
+
+  /*
+   * Delegates the request to the appropriate Controller
+   *
+   * @param $method     = Type of request (get, put, post, delete)
+   *
+   * @throws KnownException
+   * @return null
+   */
+
   public function success($data){
     $this->result(true, $data);
   }
+
+
+  /*
+   * Delegates the request to the appropriate Controller
+   *
+   * @param $method     = Type of request (get, put, post, delete)
+   *
+   * @throws KnownException
+   * @return null
+   */
 
   public function fail($data){
     $this->result(false, $data);
