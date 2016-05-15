@@ -23,6 +23,10 @@ $app->route([
                     $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);
                   },
   'routes/*'    => new MyController(),
+  'tables/'     => function($app){
+    $dbm = $app->getDbManager();
+    $app->success($dbm->fetchQuery("show tables;", null)); 
+  },
   'morning/'  =>  function($app){
                     $app->success('Lovely morning we have today');
                   },
