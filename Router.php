@@ -18,7 +18,7 @@
  */
 class Router{
 
-  private $controllers = [];
+  private $routes = [];
   private $domain;
   private static $url = null;
 
@@ -39,7 +39,7 @@ class Router{
    * @return Array
    */
   public function getRoutes(){
-    return array_keys($this->controllers);
+    return array_keys($this->routes);
   }
 
 
@@ -72,7 +72,7 @@ class Router{
    */
   public function getController(){
     $url = $this->getURL();
-    foreach($this->controllers as $regex  => $ctrl){
+    foreach($this->routes as $regex  => $ctrl){
       if(preg_match($regex, $url)){
         return $ctrl;
       }
@@ -130,7 +130,7 @@ class Router{
       
       
       $controller->_setParams($params);
-      $this->controllers[$regex] = $controller;
+      $this->routes[$regex] = $controller;
     }
   }
 }
