@@ -3,6 +3,7 @@
 require_once 'Config.php';
 require_once 'DbManager.php';
 require_once 'Controller.php';
+require_once 'Router.php';
 
 header('Content-Type: application/json');
 
@@ -34,12 +35,13 @@ class App{
   );
 
   private $dbm;
-  private $controllers = [];
   private $logging = true;
+  private $router;
 
   public $params;
 
   public function __construct(){
+    $this->router = new Router();
     try{
       $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
     }
@@ -89,24 +91,6 @@ class App{
     $dbm->setLogging($log);
   }
 
-  private function getURL(){
-    $url  = '';
-    for($i=1; $i < 5; $i++){
-      if(isset($_GET["p$i"]))
-        $url .= $_GET["p$i"] . '/';
-    }
-    return $url;
-  }
-
-
-  private function getController($url){
-    foreach($this->controllers as $regex  => $ctrl){
-      if(preg_match($regex, $url)){
-        return $ctrl;
-      }
-    }
-    return null;
-  }
 
 
   public function setRequestLogging($log){
@@ -119,41 +103,11 @@ class App{
   }
 
   public function getRoutes(){
-    return array_keys($this->controllers);
+    return $this->router->getRoutes();
   }
+
   public function route($routes){
-    foreach($routes as $url => $controller){
-      //always end routing url with '/'
-      if(substr($url, -1, 1) != '/')
-        $url .= '/';
-      $exp = explode('/', $url);
-      $regex = '/^';
-      $first = true;
-      $count =0;
-      $params = [];
-      foreach($exp as $part){
-        if($count != 0){$regex .= '\/';}
-        $count ++;
-        if(substr($part, 0, 1) == ':'){
-          $regex .= '([a-zA-Z0-9_-]+)';
-          $params[substr($part, 1)] = $count;
-          continue;
-        }elseif($part == '*'){
-          $regex .= '(.)*';
-          continue;
-        }
-        $regex .= $part;
-      }
-      $regex .= '$/';
-      if($controller instanceof Closure){
-        $controller = new InjectController($controller);
-      }
-      if(!$controller instanceof Controller){
-        $this->fail("Invalid object registered as controller");
-      }
-      $controller->_setParams($params);
-      $this->controllers[$regex] = $controller;
-    }
+    $this->router->route($routes);
   }
 
   /*
@@ -181,10 +135,10 @@ class App{
       if(!in_array($method, ['delete', 'get', 'post', 'put'])){
         throw new KnownException("Unhandled HTTP request method", ERR_BAD_REQ);
       }
-      $url = $this->getURL();
-      $controller = $this->getController($url);
+      $url = $this->router->getURL();
+      $controller = $this->router->getController();
       if($controller == null){
-        throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
+        throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
       }
       //retreive params
       $this->params = $controller->_getParams();

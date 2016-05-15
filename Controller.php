@@ -1,5 +1,6 @@
 <?php
 require_once 'Config.php';
+require_once 'Router.php';
 
 abstract class Controller{
   
@@ -47,5 +48,28 @@ class InjectController extends Controller{
       };
     }
    
+  }
+}
+
+abstract class RoutedController extends Controller{
+  private $router;
+
+  public function __construct($domain){
+    $this->router = new Router($domain);
+    $methods = ['delete', 'get', 'post', 'put'];
+    foreach($methods as $method){
+      $this->$method = function($args) use (&$method){
+        $url = $this->router->getURL();
+        $controller = $this->router->getController();
+        if($controller == null){
+          throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
+        }
+        $controller->$method($args[0]);
+      };
+    }
+  }
+
+  protected function route($routes){
+    $this->router->route($routes);
   }
 }
