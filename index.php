@@ -2,15 +2,27 @@
 
 require_once 'App.php';
 
+class MyController extends RoutedController{
+  public function __construct(){
+    parent::__construct("routes");
+    $this->route([
+      'all/'       =>  function($app){
+                            $app->success("All things come to an end");
+                          },
+      'some/'       =>  function($app){
+                            $app->success("Some things come to an end");
+                          },
+    ]);
+  }
+}
+
 $app= new App();
 
 $app->route([
   'bye/:name/:surname/'      =>  function($app){
                     $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);
                   },
-  'routes/'       =>  function($app){
-                        $app->success($app->getRoutes());
-                      },
+  'routes/*'    => new MyController(),
   'morning/'  =>  function($app){
                     $app->success('Lovely morning we have today');
                   },
