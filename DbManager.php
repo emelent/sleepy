@@ -161,7 +161,7 @@ class DbManager{
   private function log($query, $data){
     if(!$this->logging)
       return;
-    echo "[QUERY] $query" . PHP_EOL;
+    //echo "[QUERY] $query" . PHP_EOL;
     $stmnt = $this::$pdo->prepare(
       'INSERT INTO db_logs ' .
       '(user_id, ip_addr, query, data) ' . 
