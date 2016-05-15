@@ -54,7 +54,8 @@ class App{
               ERR_EXP_AUTH => "Your token has expired, please login and try again",
               ERR_UNAUTHORISED => "You are not authorised to access that resource",
               ERR_UNEXPECTED => "Sorry, something unexpected happend, please try again.",
-              ERR_DB_ERROR => "Sorry, there was a problem with the server, please try again later."
+              ERR_DB_ERROR => "Sorry, there was a problem with the server, please try again later.",
+              ERR_BAD_ROUTE => "The page you are looking for does not exist"
   );
 
   private $dbm;       
