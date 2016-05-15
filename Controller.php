@@ -13,9 +13,6 @@
 //
 // ===========================================================================
 
-require_once 'Config.php';
-require_once 'Router.php';
-
 
 /*
  * Base Controller class from which all Controllers must inherit

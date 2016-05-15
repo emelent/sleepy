@@ -13,8 +13,6 @@
 // ===========================================================================
 
 
-require_once 'Config.php';
-
 /*
  * DbManager class used for reading and writing to the database in a secure
  * and secure and simple manner.

@@ -13,10 +13,6 @@
 // ===========================================================================
 
 
-require_once 'Config.php';
-require_once 'Controller.php';
-
-
 /*
  * Router class used to handle the routing of url's to specific controllers
  */
