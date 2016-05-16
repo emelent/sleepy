@@ -13,7 +13,7 @@ create table users(
 
 create table profiles(
   id int primary key auto_increment,
-  user_id int unique references users(id),
+  user_id int unique  not null references users(id),
   name varchar(20) not null,
   surname varchar(25) not null
 );
