@@ -12,7 +12,8 @@ create table users(
 );
 
 create table profiles(
-  user_id int primary key references users(id),
+  id int primary key auto_increment,
+  user_id int unique references users(id),
   name varchar(20) not null,
   surname varchar(25) not null
 );
