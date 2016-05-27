@@ -1,6 +1,6 @@
 <?php
 
-require_once 'App.php';
+require_once 'lib/App.php';
 
 class MyController extends RoutedController{
   public function __construct(){
@@ -22,6 +22,7 @@ $app->route([
   'bye/:name/:surname/'      =>  function($app){
                     $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);
                   },
+  
   'routes/*'    => new MyController(),
   'tables/'     => function($app){
     $dbm = $app->getDbManager();

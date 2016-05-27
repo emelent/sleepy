@@ -293,7 +293,7 @@ class App{
       $expire = date('tomorrow');
     }
     $this->dbm->insert('auth_keys', [
-      'uid'     => $_SESSION['uid'],
+      'uid'     => $this->getUserID(),
       'key'     => $key,
       'expires' => $expire
     ]);
@@ -329,12 +329,9 @@ class App{
 
 
   /*
-   * Delegates the request to the appropriate Controller
+   * Return user IP
    *
-   * @param $method     = Type of request (get, put, post, delete)
-   *
-   * @throws KnownException
-   * @return null
+   * @return String
    */
 
   public function getUserIP(){
@@ -351,9 +348,7 @@ class App{
    */
 
   public function getAuthKey(){
-    if(isset($_SESSION['auth']))
-      return $_SESSION['auth'];
-    return null;
+    return isset($_SESSION['auth'])? $_SESSION['auth'] : null;
   }
 
 
@@ -386,12 +381,9 @@ class App{
   
 
   /*
-   * Delegates the request to the appropriate Controller
+   * Get database manager
    *
-   * @param $method     = Type of request (get, put, post, delete)
-   *
-   * @throws KnownException
-   * @return null
+   * @return DbManager
    */
 
   public function getDbManager(){
@@ -400,11 +392,11 @@ class App{
 
 
   /*
-   * Delegates the request to the appropriate Controller
+   * Echoes result in json form using die, hence it can only be called once,
+   * and should be called at the end of a controller method
    *
-   * @param $method     = Type of request (get, put, post, delete)
-   *
-   * @throws KnownException
+   * @param $success    = boolean, whether or not the request was successful
+   * @param $data       = ?   any data that accompanies the result
    * @return null
    */
 
@@ -417,11 +409,9 @@ class App{
 
 
   /*
-   * Delegates the request to the appropriate Controller
+   * Convenience method for App::result(true, $data), which is a successful
+   * request.
    *
-   * @param $method     = Type of request (get, put, post, delete)
-   *
-   * @throws KnownException
    * @return null
    */
 
@@ -431,11 +421,9 @@ class App{
 
 
   /*
-   * Delegates the request to the appropriate Controller
+   * Convenience method for App::result(false, $data);, which is a failed 
+   * request
    *
-   * @param $method     = Type of request (get, put, post, delete)
-   *
-   * @throws KnownException
    * @return null
    */
 

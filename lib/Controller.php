@@ -33,7 +33,7 @@ abstract class Controller{
    * Handle function calls to dynamic methods
    *
    * @param $method     =  method to be called
-   * @param $args       =  arguments that the function receives
+   * @param $args       =  method that the function receives
    *
    * @throws exception
    * @return null
