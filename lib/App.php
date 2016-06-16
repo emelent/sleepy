@@ -431,4 +431,18 @@ class App{
   public function fail($data){
     $this->result(false, $data);
   }
+
+
+  /*
+   * Checks if the current request method matches the given one, and if it
+   * doesn't then it fails
+   *
+   * @return null
+   */
+  public function assertRequestMethod($method){
+    if($_SERVER['REQUEST_METHOD'] != $method)
+      $this->fail("Invalid request method");
+  }
+
+  
 }
