@@ -2,28 +2,14 @@
 
 require_once 'lib/App.php';
 
-class MyController extends RoutedController{
-  public function __construct(){
-    parent::__construct("routes");
-    $this->route([
-      'all/'       =>  function($app){
-                            $app->success("All things come to an end");
-                          },
-      'some/'       =>  function($app){
-                            $app->success("Some things come to an end");
-                          },
-    ]);
-  }
-}
-
 $app= new App();
+
 
 $app->route([
   'bye/:name/:surname/'      =>  function($app){
                     $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);
                   },
   
-  'routes/*'    => new MyController(),
   'tables/'     => function($app){
     $dbm = $app->getDbManager();
     $app->success($dbm->fetchQuery("show tables;", null)); 

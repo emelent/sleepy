@@ -117,6 +117,14 @@ class _InjectController extends Controller{
   }
 }
 
+//============================================================================
+//
+// RoutedController is no longer going to be used because of routing bugs
+// when using named variables in url. It was an ambitious move but it would
+// seem that life would be better without it
+//
+//===========================================================================
+
 /*
  * RoutedController class is a Controller which contains it's own
  * Router object. This is to allow the grouping of related routes
@@ -176,26 +184,27 @@ class _InjectController extends Controller{
  *  be the same as the route you pass as the RoutedController $domain
  *
  */
-abstract class RoutedController extends Controller{
-  private $router;
+
+//abstract class RoutedController extends Controller{
+  //private $router;
 
   /*
    * @param $domain =  String common domain route 
    */
-  public function __construct($domain){
-    $this->router = new Router($domain);
-    $methods = ['delete', 'get', 'post', 'put'];
-    foreach($methods as $method){
-      $this->$method = function($args) use (&$method){
-        $url = $this->router->getURL();
-        $controller = $this->router->getController();
-        if($controller == null){
-          throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
-        }
-        $controller->$method($args[0]);
-      };
-    }
-  }
+  //public function __construct($domain){
+    //$this->router = new Router($domain);
+    //$methods = ['delete', 'get', 'post', 'put'];
+    //foreach($methods as $method){
+      //$this->$method = function($args) use (&$method){
+        //$url = $this->router->getURL();
+        //$controller = $this->router->getController();
+        //if($controller == null){
+          //throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
+        //}
+        //$controller->$method($args[0]);
+      //};
+    //}
+  //}
 
   /*
    * Handles routing via the Router object
@@ -204,7 +213,7 @@ abstract class RoutedController extends Controller{
    * @return null
    */
 
-  protected function route($routes){
-    $this->router->route($routes);
-  }
-}
+  //protected function route($routes){
+    //$this->router->route($routes);
+  //}
+//}
