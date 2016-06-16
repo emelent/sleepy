@@ -59,7 +59,7 @@ class App{
   );
 
   private $dbm;       
-  private $logging = true; //log everything by default
+  private $logging = false; //do not log everything by default
   private $router;
 
   public $params;
@@ -68,6 +68,7 @@ class App{
     $this->router = new Router();
     try{
       $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
+      $this->dbm->setLogging($this->logging);
     }
     catch(KnownException $e){
       /* Handle known exceptions i.e. exceptions thrown by our logic */
