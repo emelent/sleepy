@@ -61,6 +61,8 @@ class App{
   private $dbm;       
   private $logging = false; //do not log everything by default
   private $router;
+  private $auth = null;
+
 
   public $params;
 
@@ -115,8 +117,8 @@ class App{
     $dbm->insert(
       'request_logs',
       [
-        'user_id' =>  $this->getUserID(),
-        'ip_addr' =>  $this->getUserIP(),
+        'user_id' =>  $this->auth->user_id,
+        'ip_addr' =>  $_SERVER['REMOTE_ADDR'],
         'request' =>  $_SERVER['REQUEST_URI'],
         'data'    =>  json_encode($data)
       ]
@@ -197,6 +199,12 @@ class App{
       if(!in_array($method, ['delete', 'get', 'post', 'put'])){
         throw new KnownException("Unhandled HTTP request method", ERR_BAD_REQ);
       }
+
+      if(!isset($_GET['key'])){
+        throw new KnownException("No user key specified", ERR_UNAUTHORISED);
+      }
+
+      $this->authenticateKey($_GET['key']);
       $url = $this->router->getURL();
       $controller = $this->router->getController();
       if($controller == null){
@@ -243,15 +251,37 @@ class App{
    */
 
   public function authenticateKey($key){
+    //for activity that needs no authorisation, i.e logging in
+    if($key == 'guest'){
+      $this->auth = null;
+      return;
+    }
     $auth = $this->dbm->fetch('auth_keys', [
       'key'     => $key
     ])[0];
     //TODO use proper format
     if($auth == null){
-      $this->fail('', ERR_BAD_AUTH);
+      throw new KnownException('', ERR_BAD_AUTH);
     }
+    $this->auth = $auth; //authorise user
   }
 
+
+  /*
+   * Throws an exception if user is not authorised
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  public function authorised($lvl=0){
+    if($this->$auth == null){
+      throw new KnownException('', ERR_UNAUTHORISED);
+    }
+    if($auth->auth_lvl < $lvl){
+      throw new KnownException('', ERR_UNAUTHORISED);
+    }
+  }
 
   /*
    * Deauthenticates all keys linked to given
@@ -263,9 +293,15 @@ class App{
    * @return null
    */
 
-  public function deauthenticateKey($uid){
+  public function deauthenticateKey(){
     $auth = $this->dbm->delete('auth_keys', [
-      'user_id'     => $uid
+      'id' => $this->auth->id
+    ]);
+  }
+
+  public function deauthenticateKeys(){
+    $auth = $this->dbm->delete('auth_keys', [
+      'user_id' => $this->auth->user_id
     ]);
   }
 
