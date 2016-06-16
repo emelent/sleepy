@@ -11,6 +11,10 @@
 // public or private are not meant to be called directly by a user but are for 
 // the inner functioning of the library as a whole.
 //
+// 
+// All requests follow the general structure of:
+//
+//    http(s)://<path to api>/<API_KEY>/<api url route>
 //
 // ===========================================================================
 
