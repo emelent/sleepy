@@ -444,5 +444,22 @@ class App{
       $this->fail("Invalid request method");
   }
 
+  /*
+   * Returns true if the array passed in $array has all the keys
+   * passed in array $keys set to non-null value
+   *
+   * @param $keys = array of keys
+   * @param $array = array of values
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  public function assertArrayKeysSet($keys, $array, $msg = ''){
+    foreach($keys as $key){
+      if(!isset($array[$key]))
+        throw new KnownException($msg, ERR_INCOMP_REQ);
+    }
+  }
   
 }
