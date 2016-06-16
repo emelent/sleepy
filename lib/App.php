@@ -234,7 +234,7 @@ class App{
 
 
   /*
-   * Verifies given key, then logs user in based on key
+   * Verifies given key, calls $this->fail if invalid
    *
    * @param $key      = authorization key
    *
@@ -245,13 +245,11 @@ class App{
   public function authenticateKey($key){
     $auth = $this->dbm->fetch('auth_keys', [
       'key'     => $key
-    ]);
+    ])[0];
     //TODO use proper format
     if($auth == null){
-      throw new KnownException('', ERR_BAD_AUTH);
+      $this->fail('', ERR_BAD_AUTH);
     }
-    $_SESSION['auth'] = $key;
-    $_SESSION['uid'] = $auth->user_id;
   }
 
 
@@ -265,16 +263,10 @@ class App{
    * @return null
    */
 
-  public function deauthenticateKeys($uid){
+  public function deauthenticateKey($uid){
     $auth = $this->dbm->delete('auth_keys', [
-      'uid'     => $uid
+      'user_id'     => $uid
     ]);
-    //TODO use proper format
-    if($auth == null){
-      throw new KnownException('', ERR_BAD_AUTH);
-    }
-    $_SESSION['auth'] = null;
-    $_SESSION['uid'] = $auth->user_id;
   }
 
 
@@ -283,75 +275,21 @@ class App{
    * instead of login details.
    *
    * @param $uid      = user id
-   * @param $expire   = expiration date of authorization key
    *
    * @throws KnownException
    * @return null
    */
-  public function generateKey($uid, $expire=null){
+  public function generateKey($uid){
     $key = hash('SHA256', uniqid('auth', true));
     if($expire == null){
       $expire = date('tomorrow');
     }
     $this->dbm->insert('auth_keys', [
-      'uid'     => $this->getUserID(),
-      'key'     => $key,
-      'expires' => $expire
+      'user_id'     => $uid,
+      'auth_key'     => $key
     ]);
-    $_SESSION['auth'] = $key;
+    return $key;
   }
-
-
-  /*
-   * Checks if current user is logged in
-   *
-   * @return boolean
-   */
-
-  public function isLoggedIn(){
-    return isset($_SESSION['uid0']);
-  }
-
-  public function login($uid){
-    $_SESSION['uid0'] = $uid;
-  }
-
-  /*
-   * Returns current user id
-   *
-   * @return integer
-   */
-  public function getUserID(){
-    if($this->isLoggedIn()){
-      return $_SESSION['uid0'];
-    }
-    return -1;
-  }
-
-
-  /*
-   * Return user IP
-   *
-   * @return String
-   */
-
-  public function getUserIP(){
-    if(isset($_SERVER['REMOTE_ADDR'])){
-      return $_SERVER['REMOTE_ADDR'];
-    }
-    return '127.0.0.1';
-  }
-
-  /*
-   * Returns current user auth key or null if none exists
-   *
-   * @return string | null
-   */
-
-  public function getAuthKey(){
-    return isset($_SESSION['auth'])? $_SESSION['auth'] : null;
-  }
-
 
   /*
    * Returns current user form token
@@ -461,5 +399,4 @@ class App{
         throw new KnownException($msg, ERR_INCOMP_REQ);
     }
   }
-  
 }
