@@ -200,9 +200,9 @@ class App{
       $this->auth = null;
       return;
     }
-    $auth = $this->dbm->fetch('auth_keys', [
+    $auth = $this->dbm->fetchSingle('auth_keys', [
       'key'     => $key
-    ])[0];
+    ]);
     //TODO use proper format
     if($auth == null){
       throw new KnownException('', ERR_BAD_AUTH);
@@ -210,6 +210,31 @@ class App{
     $this->auth = $auth; //authorise user
   }
 
+  /*
+   * Authenticates user using email and password,
+   * if successful returns an authorization to be
+   * used with api
+   *
+   * @param $email      = user email
+   * @param $password   = user password 
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  public function authenticateEmailPass($email, $password){
+    $user = $this->dbm->fetchSingle('users', ['email' => $username, 'password' => $password]);
+    if($user == null){
+      $this->fail("Email password authentication failed.");
+    }
+    $auth = $this->dbm->fetchSingle('auth_keys', [
+      'user_id'     => $user->id
+    ]);
+    if($auth == null){
+      $this->success($this->generateKey($user->id));
+    }
+    $this->success($auth->auth_key);
+  }
 
   /*
    * Throws an exception if user is not authorised
@@ -218,11 +243,11 @@ class App{
    * @return null
    */
 
-  public function authorised($lvl=0){
+  public function authorised($group=0){
     if($this->$auth == null){
       throw new KnownException('', ERR_UNAUTHORISED);
     }
-    if($auth->auth_lvl < $lvl){
+    if($auth->user_group < $group){
       throw new KnownException('', ERR_UNAUTHORISED);
     }
   }
@@ -231,18 +256,9 @@ class App{
    * Deauthenticates all keys linked to given
    * user id
    *
-   * @param $uid      = user id
-   *
    * @throws KnownException
    * @return null
    */
-
-  public function deauthenticateKey(){
-    $auth = $this->dbm->delete('auth_keys', [
-      'id' => $this->auth->id
-    ]);
-  }
-
   public function deauthenticateKeys(){
     $auth = $this->dbm->delete('auth_keys', [
       'user_id' => $this->auth->user_id
@@ -254,18 +270,19 @@ class App{
    * Generates an authorization key which can be used
    * instead of login details.
    *
-   * @param $uid      = user id
+   * @param $user_id      = user id
    *
    * @throws KnownException
    * @return null
    */
-  public function generateKey($uid){
+  private function generateKey($user_id){
+    deauthenticateKeys();
     $key = hash('SHA256', uniqid('auth', true));
     if($expire == null){
       $expire = date('tomorrow');
     }
     $this->dbm->insert('auth_keys', [
-      'user_id'     => $uid,
+      'user_id'     => $user_id,
       'auth_key'     => $key
     ]);
     return $key;
