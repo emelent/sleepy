@@ -156,6 +156,7 @@ class App{
       }
       //retreive params
       $this->params = $controller->_getParams();
+
       // run the method on controller
       $controller->$method($this);
     }
@@ -201,7 +202,7 @@ class App{
       return;
     }
     $auth = $this->dbm->fetchSingle('auth_keys', [
-      'key'     => $key
+      'auth_key'     => $key
     ]);
     //TODO use proper format
     if($auth == null){
