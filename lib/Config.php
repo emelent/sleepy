@@ -18,6 +18,8 @@ define('DB_PASS', '');
 /* Turn this to false for Production */
 define('DEBUG', true);
 
+define('GUEST_KEY', 'GUEST');
+
 /* ERROR CODES */
 define('ERR_UNK_REQ', 0);  //unknown request method
 define('ERR_BAD_REQ',  1); //invalid data

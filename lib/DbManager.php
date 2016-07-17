@@ -22,7 +22,6 @@ class DbManager{
   /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
   private $app;
-  private $logging = true;
 
   public function __construct($app, $dsn, $dbhost, $dbname, $dbuser, $dbpass){
     if($this::$pdo == null){
@@ -253,29 +252,6 @@ class DbManager{
 
 
   /*
-   * Toggles database logging( the logging of all database writes and deletion)
-   *
-   * @param $log        = boolean
-   *
-   * @return null
-   */
-
-  public function setLogging($log){
-    $this->logging = $log;
-  }
-
-
-  /*
-   * Returns value of db logging toggle
-   *
-   * @return boolean
-   */
-  public function getLogging(){
-    return $this->logging;
-  }
-
-
-  /*
    * Verifies that the given data is an array
    *
    * @param $data     = Array
@@ -320,34 +296,5 @@ class DbManager{
     }
 
     return $where;
-  }
-
-
-  /*
-   * Logs database writes and deletions to database
-   *
-   * @param $query      = String SQL query to be used in prepared statement
-   *                     
-   * @param $data       = Array key-value store of columns and values to use
-   *                      when executing statement
-   *
-   *
-   * @return null
-   */
-  private function log($query, $data){
-    if(!$this->logging)
-      return;
-    //echo "[QUERY] $query" . PHP_EOL;
-    $stmnt = $this::$pdo->prepare(
-      'INSERT INTO db_logs ' .
-      '(user_id, ip_addr, query, data) ' . 
-      'VALUES (:user_id, :ip_addr, :query, :data) ');
-    $logData = [
-      'user_id' => $this->app->getUserID(),
-      'ip_addr' => $this->app->getUserIP(),
-      'query'   => $query,
-      'data'    => json_encode($data)
-    ];
-    $stmnt->execute($logData);
   }
 }

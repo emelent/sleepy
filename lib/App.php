@@ -14,8 +14,9 @@
 // 
 // All requests follow the general structure of:
 //
-//    http(s)://<path to api>/<API_KEY>/<api url route>
+//    http(s)://<path to api>/<api url route>
 //
+// with API_KEY sent in with headers.
 // ===========================================================================
 
 
@@ -63,7 +64,6 @@ class App{
   );
 
   private $dbm;       
-  private $logging = false; //do not log everything by default
   private $router;
   private $auth = null;
 
@@ -74,7 +74,6 @@ class App{
     $this->router = new Router();
     try{
       $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
-      $this->dbm->setLogging($this->logging);
     }
     catch(KnownException $e){
       /* Handle known exceptions i.e. exceptions thrown by our logic */
@@ -100,62 +99,6 @@ class App{
       }
     }
     session_start();
-  }
-
-
-  /*
-   * Logs request to database with various information
-   *
-   * @return null
-   */
-
-  private function logRequest(){
-    if(!$this->logging)
-      return;
-    $dbm = $this->dbm;
-    $log = $dbm->getLogging();
-    $data = ['GET' => $_GET, 'POST' => $_POST];
-    // turn off logging so that writes to logging database are not
-    // logged(that would lead to an endless loop of logging
-    $dbm->setLogging(false);
-    $dbm->insert(
-      'request_logs',
-      [
-        'user_id' =>  $this->auth->user_id,
-        'ip_addr' =>  $_SERVER['REMOTE_ADDR'],
-        'request' =>  $_SERVER['REQUEST_URI'],
-        'data'    =>  json_encode($data)
-      ]
-    );
-    // set db logging to what it was before it was turned off
-    $dbm->setLogging($log);
-  }
-
-
-
-  /*
-   * Toggles request logging
-   *
-   * @param $log        = boolean
-   *
-   * @return null
-   */
-
-  public function setRequestLogging($log){
-    $this->logging = $log;
-  }
-
-
-  /*
-   * Toggles database logging( the logging of all database writes and deletion)
-   *
-   * @param $log        = boolean
-   *
-   * @return null
-   */
-
-  public function setDbLogging($log){
-    $this->dbm->setLogging($log);
   }
 
 
@@ -198,17 +141,14 @@ class App{
       if(!isset($_SERVER['REQUEST_METHOD'])){
         throw new KnownException('No request was made to the server', ERR_BAD_REQ);
       }
-      $this->logRequest();
       $method = strtolower($_SERVER['REQUEST_METHOD']);
       if(!in_array($method, ['delete', 'get', 'post', 'put'])){
         throw new KnownException("Unhandled HTTP request method", ERR_BAD_REQ);
       }
 
-      if(!isset($_GET['key'])){
-        throw new KnownException("No user key specified", ERR_UNAUTHORISED);
-      }
+      $key = (isset($_SERVER['API_KEY']))? $_SERVER['API_KEY']: GUEST_KEY;
 
-      $this->authenticateKey($_GET['key']);
+      $this->authenticateKey($key);
       $url = $this->router->getURL();
       $controller = $this->router->getController();
       if($controller == null){
@@ -256,7 +196,7 @@ class App{
 
   public function authenticateKey($key){
     //for activity that needs no authorisation, i.e logging in
-    if($key == 'guest'){
+    if($key == GUEST_KEY){
       $this->auth = null;
       return;
     }
