@@ -12,7 +12,7 @@ create table users(
 
 
 create table auth_keys(
-  user_id primary key int references users(id),
+  user_id int unique references users(id),
   created datetime not null default current_timestamp,
   auth_key varchar(64) not null
 );
