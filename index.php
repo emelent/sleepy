@@ -30,18 +30,7 @@ $app->route([
                           $dbm = $app->getDbManager();
                           $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
                           $pass = hash('sha256', $_POST['password']);
-                          $users = $dbm->fetch(
-                            'users', 
-                            ['email'=> $email, 'password'=> $pass],
-                            ['id', 'email', 'created', 'auth_lvl']
-                          );
-                          if($users){
-                            $user = $users[0];
-                            $app->login($user->id);
-                            $app->success($user);
-                          }else{
-                            $app->fail('Invalid email and/or password');
-                          }
+                          $app->authenticateEmailPass($email, $pass);
                         },
   'user/create/'   =>   function($app){
                           if($_SERVER['REQUEST_METHOD'] != 'POST')
@@ -51,7 +40,7 @@ $app->route([
                           $pass = hash('sha256', $_POST['password']);
                           $dbm->insert(
                             'users',
-                            ['email' => $email, 'password'=> $pass, 'validated'=>true]
+                            ['email' => $email, 'password'=> $pass]
                           );
                           $app->success(null);
                         },

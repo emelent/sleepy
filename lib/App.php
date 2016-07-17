@@ -224,7 +224,7 @@ class App{
    */
 
   public function authenticateEmailPass($email, $password){
-    $user = $this->dbm->fetchSingle('users', ['email' => $username, 'password' => $password]);
+    $user = $this->dbm->fetchSingle('users', ['email' => $email, 'password' => $password]);
     if($user == null){
       $this->fail("Email password authentication failed.");
     }
@@ -261,9 +261,11 @@ class App{
    * @return null
    */
   public function deauthenticateKeys(){
-    $auth = $this->dbm->delete('auth_keys', [
-      'user_id' => $this->auth->user_id
-    ]);
+    if($this->auth){
+      $auth = $this->dbm->delete('auth_keys', [
+        'user_id' => $this->auth->user_id
+      ]);
+    }
   }
 
 
@@ -276,15 +278,16 @@ class App{
    * @throws KnownException
    * @return null
    */
-  private function generateKey($user_id){
-    deauthenticateKeys();
+  private function generateKey($user_id, $expire=null){
+    $this->deauthenticateKeys();
     $key = hash('SHA256', uniqid('auth', true));
     if($expire == null){
       $expire = date('tomorrow');
     }
     $this->dbm->insert('auth_keys', [
-      'user_id'     => $user_id,
-      'auth_key'     => $key
+      'user_id'   => $user_id,
+      'auth_key'  => $key,
+      'expires'   => $expire   
     ]);
     return $key;
   }

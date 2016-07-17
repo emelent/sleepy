@@ -104,7 +104,7 @@ class DbManager{
    */
 
   public function fetchAll(
-    $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true)
+    $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true, $all=true)
   {
     $this->verifyData($data);
     if($select == null){
@@ -121,13 +121,13 @@ class DbManager{
       $order = ($orderAsc)? 'ASC':'DESC';
       $query .= " ORDER BY $orderList $order";
     }
-    return $this->fetchQuery($query, $data, true);
+    return $this->fetchQuery($query, $data, $all);
   }
 
   public function fetchSingle(
     $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true)
   {
-    return $this->fetchAll($table, $data, $select, $orderBy, $orderAsc, $inclusive)[0];
+    return $this->fetchAll($table, $data, $select, $orderBy, $orderAsc, $inclusive, false);
   }
 
   /*
@@ -216,7 +216,6 @@ class DbManager{
   public function execQuery($query, $data){
     $stmnt = $this::$pdo->prepare($query);
     $stmnt->execute($data);
-    $this->log($query, $data);
   }
 
 
@@ -237,9 +236,6 @@ class DbManager{
     $stmnt->setFetchMode(PDO::FETCH_OBJ);
 
     $stmnt->execute($data);
-    // don't log database reads
-    //$this->log($query, $data);
-
     if($all)
       return $stmnt->fetchAll();
     return $stmnt->fetch();

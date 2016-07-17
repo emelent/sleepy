@@ -14,5 +14,6 @@ create table users(
 create table auth_keys(
   user_id int unique references users(id),
   created datetime not null default current_timestamp,
+  expires datetime not null,
   auth_key varchar(64) not null
 );
