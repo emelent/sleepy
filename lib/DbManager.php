@@ -103,8 +103,8 @@ class DbManager{
    * @return Array | StdObject
    */
 
-  public function fetch(
-    $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true, $all=true)
+  public function fetchAll(
+    $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true)
   {
     $this->verifyData($data);
     if($select == null){
@@ -121,9 +121,14 @@ class DbManager{
       $order = ($orderAsc)? 'ASC':'DESC';
       $query .= " ORDER BY $orderList $order";
     }
-    return $this->fetchQuery($query, $data, $all);
+    return $this->fetchQuery($query, $data, true);
   }
 
+  public function fetchSingle(
+    $table, $data, $select=null, $orderBy=null, $orderAsc=true, $inclusive=true)
+  {
+    return $this->fetchAll($table, $data, $select, $orderBy, $orderAsc, $inclusive)[0];
+  }
 
   /*
    * Runs DELETE query on database
