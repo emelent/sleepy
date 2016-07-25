@@ -37,12 +37,8 @@ $app->route([
                             $app->fail('Unhandled request method');
                           $dbm = $app->getDbManager();
                           $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-                          $pass = hash('sha256', $_POST['password']);
-                          $dbm->insert(
-                            'users',
-                            ['email' => $email, 'password'=> $pass]
-                          );
-                          $app->success(null);
+                          $pass = $_POST['password'];
+                          $app->createUserValidated($email, $pass);
                         },
   'user/delete/' =>  function($app){
                         if($_SERVER['REQUEST_METHOD'] != 'POST')
