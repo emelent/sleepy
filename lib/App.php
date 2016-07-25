@@ -238,6 +238,86 @@ class App{
   }
 
   /*
+   * Generate hash for  password
+   *
+   * @param $password   =  password 
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  public function hashPassword($password){
+    return hash('sha256', $_POST['password']);
+  }
+
+
+  /*
+   * Create a new user which has the validated attribute
+   * set to true
+   *
+   * @param $email      =  user email
+   * @param $password   =  user password
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  public function createUserValidated($email, $password){
+    $this->createUser($email, $password, false);
+  }
+
+  /*
+   * Create a new user which has the validated attribute
+   * set to false, to set up things such as email validation
+   *
+   * @param $email      =  user email
+   * @param $password   =  user password
+   *
+   * @throws KnownException
+   * @return null
+   */
+  public function createUserUnvalidated($email, $password){
+    $this->createUser($email, $password, false);
+  }
+
+
+  /*
+   * Generate UID
+   *
+   *
+   * @return string
+   */
+
+  public function generateUID($length=64, $strong=true){
+    return bin2hex(openssl_random_pseudo_bytes($length/2, $strong));
+  }
+
+
+  /*
+   * Creates a new user using the given credentials
+   *
+   * @throws KnownException
+   * @return null
+   *
+   */
+  private function createUser($email, $password, $validated){
+    $dbm = $this->getDbManager();
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $pass = $this->hashPassword($password); 
+    $uid = $this->generateUID();
+    $dbm->insert(
+      'users',
+      [
+        'uid' => $uid,
+        'email' => $email, 
+        'password' => $pass,
+        'validated' => $validated
+      ]
+    );
+    $app->authenticateEmailPass($email, $pass);
+  }
+
+  /*
    * Throws an exception if user is not authorised
    *
    * @throws KnownException
