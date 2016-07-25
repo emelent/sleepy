@@ -294,7 +294,7 @@ class App{
 
 
   /*
-   * Creates a new user using the given credentials
+   * Creates a new user using the given credentials, then logs the user in
    *
    * @throws KnownException
    * @return null
