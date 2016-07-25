@@ -17,6 +17,16 @@ $app->route([
   'morning/'  =>  function($app){
                     $app->success('Lovely morning we have today');
                   },
+  'testDate/' => function($app){
+                  $dbm = $app->getDbManager();
+                  $day = 24*60*60*365;
+                  $date = date("Y-m-d H:i:s", time()+ $day);
+                  $dbm->insert(
+                          'test',
+                          ['created' => $date]
+                        );
+                  $app->success("Date stored as tommorw -> " + $date);
+  },
   'users/'    =>  function($app){
                     if($_SERVER['REQUEST_METHOD'] != 'GET')
                       return;
@@ -35,7 +45,6 @@ $app->route([
   'user/create/'   =>   function($app){
                           if($_SERVER['REQUEST_METHOD'] != 'POST')
                             $app->fail('Unhandled request method');
-                          $dbm = $app->getDbManager();
                           $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
                           $pass = $_POST['password'];
                           $app->createUserValidated($email, $pass);
