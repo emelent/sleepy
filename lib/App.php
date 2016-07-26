@@ -362,7 +362,7 @@ class App{
     $this->deauthenticateKeys();
     $key = hash('SHA256', uniqid('auth', true));
     if($expire == null){
-      $expire = date('tomorrow');
+      $expire = date('Y-m-d H:i:s', time() + 24*60*60* 7); //set auth key to expire after 7 days
     }
     $this->dbm->insert('auth_keys', [
       'user_id'   => $user_id,
