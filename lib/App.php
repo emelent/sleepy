@@ -219,6 +219,10 @@ class App{
     $this->auth = $auth; //authorise user
   }
 
+  public function isAuthenticated(){
+    return $this->auth != null;
+  }
+
   /*
    * Authenticates user using email and password,
    * if successful returns an authorization to be
@@ -258,6 +262,40 @@ class App{
     return hash('sha256', $_POST['password']);
   }
 
+  /*
+   * Authentication is done with uid/user_id instead of 
+   * password, therefore external party should provide
+   * the user id
+   *
+   * @param $email      = user email
+   * @param $uid        = user uid 
+   *
+   * @throws KnownException
+   * @return null
+   */
+  public function authenticateExternal($email, $uid){
+    $user = $this->dbm->fetchSingle('users', ['email' => $email]);
+    if($user == null){ //if user doesn't exist
+      //create external user account
+      $this->createUserExternal($email, $uid);
+      $user = $this->dbm->fetchSingle('users', ['email' => $email, 'id' => $uid]);
+    }else{ 
+      //if user id doesn't match, failed login, wrong uid
+      if($user->id != $uid)
+        $this->fail("Authentication failed.");
+    }
+
+    $auth = $this->dbm->fetchSingle('auth_keys', [
+      'user_id'     => $user->id
+    ]);
+
+    //generate key if there is no key
+    if($auth == null){
+      $this->success($this->generateKey($user->id));
+    }
+    $this->success($auth->auth_key);
+  }
+
 
   /*
    * Create a new user which has the validated attribute
@@ -272,6 +310,7 @@ class App{
 
   public function createUserValidated($email, $password){
     $this->createUser($email, $password, false);
+    $this->authenticateEmailPass($email, $pass);
   }
 
   /*
@@ -286,6 +325,7 @@ class App{
    */
   public function createUserUnvalidated($email, $password){
     $this->createUser($email, $password, false);
+    $this->authenticateEmailPass($email, $pass);
   }
 
 
@@ -322,17 +362,27 @@ class App{
         'validated' => $validated
       ]
     );
-    $app->authenticateEmailPass($email, $pass);
+  }
+
+  private function createUserExternal($email, $uid){
+    //set password to randomized string since authorization 
+    //will be handled by external party and we wont handle logins 
+    //for this user personally, ideally, no one will guess the password
+    $password = $this->generateUID();     
+    $this->createUser($email, $password, $uid, true);
   }
 
   /*
-   * Throws an exception if user is not authorised
+   * Perform a check on the user's usergroup, if the group level is
+   * lower than the value specifed by @param group, then they are not 
+   * authorised, and an exception will be thrown
    *
+   * @param group = group level required
    * @throws KnownException
    * @return null
    */
 
-  public function authorised($group=0){
+  public function authorise($group=0){
     if($this->$auth == null){
       throw new KnownException('', ERR_UNAUTHORISED);
     }
