@@ -67,10 +67,18 @@ class App{
   private $router;
   private $auth = null;
 
+  private static $INSTANCE = null;
 
   public $params;
 
-  public function __construct(){
+  public static function getInstance(){
+    if(App::$INSTANCE == null){
+      App::$INSTANCE = new App();
+    }
+    return App::$INSTANCE;
+  }
+
+  private function __construct(){
     $this->router = new Router();
     try{
       $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
@@ -481,3 +489,5 @@ class App{
     }
   }
 }
+
+$app = App::getInstance();

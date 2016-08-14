@@ -2,7 +2,6 @@
 
 require_once 'lib/App.php';
 
-$app= new App();
 
 
 $app->route([
