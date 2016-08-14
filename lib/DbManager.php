@@ -22,10 +22,10 @@ class DbManager{
   /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
 
-  public function __construct($dsn, $dbhost, $dbname, $dbuser, $dbpass){
+  public function __construct($dsn, $dbhost, $dbname, $dbuser, $dbpass, $port=3306){
     if($this::$pdo == null){
       try{
-        $this::$pdo = new PDO("$dsn:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
+        $this::$pdo = new PDO("$dsn:dbname=$dbname;host=$dbhost;port=$port", $dbuser, $dbpass);
         $this::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       }catch(PDOException $e){
         throw new KnownException('Failed to initialize database => ' . 
