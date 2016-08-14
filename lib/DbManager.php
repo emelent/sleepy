@@ -21,9 +21,8 @@ class DbManager{
   
   /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
-  private $app;
 
-  public function __construct($app, $dsn, $dbhost, $dbname, $dbuser, $dbpass){
+  public function __construct($dsn, $dbhost, $dbname, $dbuser, $dbpass){
     if($this::$pdo == null){
       try{
         $this::$pdo = new PDO("$dsn:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
@@ -33,7 +32,6 @@ class DbManager{
           $e->getMessage(), ERR_DB_ERROR);
       }
     }
-    $this->app = $app;
   }
 
 

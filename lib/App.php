@@ -81,7 +81,7 @@ class App{
   private function __construct(){
     $this->router = new Router();
     try{
-      $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
+      $this->dbm = new DbManager(DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
     }
     catch(KnownException $e){
       /* Handle known exceptions i.e. exceptions thrown by our logic */
