@@ -42,7 +42,7 @@ class DbManager{
    *
    * @return PDOConnection
    */
-  public static function getPDO(){
+  public static function getPdo(){
     return DbManager::$pdo;
   }
 
