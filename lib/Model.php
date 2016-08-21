@@ -281,13 +281,11 @@ final class Models{
 abstract class Model{
 
   protected $className;
-  protected $pdo;
   protected $meta;
 
 
   public function __construct(){
     $this->className = get_class($this);
-    $this->pdo = App::getInstance()->getDbManager()->getPdo();
     $this->meta = getMeta($this->className);
     $this->createGettersAndSetters();
   }
