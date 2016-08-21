@@ -115,6 +115,9 @@ class App{
     return $this->router->getRoutes();
   }
 
+  public function getAuth(){
+    return $this->auth;
+  }
 
   /*
    * Routes given paths to controllers
@@ -149,7 +152,9 @@ class App{
         throw new KnownException("Unhandled HTTP request method", ERR_BAD_REQ);
       }
 
-      $key = (isset($_SERVER['API_KEY']))? $_SERVER['API_KEY']: GUEST_KEY;
+      //TODO fix this to use $_SERVER[API_KEY]
+      $headers = apache_request_headers();
+      $key = (isset($headers[API_KEY]))? $headers[API_KEY]: GUEST_KEY;
 
       $this->authenticateKey($key);
       $url = $this->router->getURL();
@@ -206,8 +211,9 @@ class App{
         $args = array_reverse($args);
         try{
           $controller->{$args[0]}($this, $args);
-        }catch(Exception $e){
+        }catch(UnknownMethodCallException $e){
           throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
+          //throw new KnownException($e->getMessage(), ERR_BAD_ROUTE);
         }
       }else{
         $controller->$request_method($this);
@@ -229,8 +235,8 @@ class App{
       $this->auth = null;
       return;
     }
-    $auth = $this->dbm->fetchSingle('auth_keys', [
-      'auth_key'     => $key
+    $auth = Models::fetchSingle('Auth', [
+      'key'     => $key
     ]);
     //TODO use proper format
     if($auth == null){
@@ -256,17 +262,17 @@ class App{
    */
 
   public function authenticateEmailPass($email, $password){
-    $user = $this->dbm->fetchSingle('users', ['email' => $email, 'password' => $password]);
+    $user = $this->dbm->fetchSingle(getMeta('User')->getTableName(), ['email' => $email, 'password' => $password]);
     if($user == null){
       $this->fail("Email password authentication failed.");
     }
-    $auth = $this->dbm->fetchSingle('auth_keys', [
+    $auth = $this->dbm->fetchSingle(getMeta('Auth')->getTableName(), [
       'user_id'     => $user->id
     ]);
     if($auth == null){
       $this->success($this->generateKey($user->id));
     }
-    $this->success($auth->auth_key);
+    $this->success($auth->key);
   }
 
   /*
@@ -293,28 +299,28 @@ class App{
    * @throws KnownException
    * @return null
    */
-  public function authenticateExternal($email, $uid){
-    $user = $this->dbm->fetchSingle('users', ['email' => $email]);
-    if($user == null){ //if user doesn't exist
-      //create external user account
-      $this->createUserExternal($email, $uid);
-      $user = $this->dbm->fetchSingle('users', ['email' => $email, 'id' => $uid]);
-    }else{ 
-      //if user id doesn't match, failed login, wrong uid
-      if($user->id != $uid)
-        $this->fail("Authentication failed.");
-    }
+  //public function authenticateExternal($email, $uid){
+    //$user = $this->dbm->fetchSingle('users', ['email' => $email]);
+    //if($user == null){ //if user doesn't exist
+      ////create external user account
+      //$this->createUserExternal($email, $uid);
+      //$user = $this->dbm->fetchSingle('users', ['email' => $email, 'id' => $uid]);
+    //}else{ 
+      ////if user id doesn't match, failed login, wrong uid
+      //if($user->id != $uid)
+        //$this->fail("Authentication failed.");
+    //}
 
-    $auth = $this->dbm->fetchSingle('auth_keys', [
-      'user_id'     => $user->id
-    ]);
+    //$auth = $this->dbm->fetchSingle('auth_keys', [
+      //'user_id'     => $user->id
+    //]);
 
-    //generate key if there is no key
-    if($auth == null){
-      $this->success($this->generateKey($user->id));
-    }
-    $this->success($auth->auth_key);
-  }
+    ////generate key if there is no key
+    //if($auth == null){
+      //$this->success($this->generateKey($user->id));
+    //}
+    //$this->success($auth->auth_key);
+  //}
 
 
   /*
@@ -330,7 +336,7 @@ class App{
 
   public function createUserValidated($email, $password){
     $this->createUser($email, $password, false);
-    $this->authenticateEmailPass($email, $pass);
+    $this->authenticateEmailPass($email, $password);
   }
 
   /*
@@ -345,7 +351,7 @@ class App{
    */
   public function createUserUnvalidated($email, $password){
     $this->createUser($email, $password, false);
-    $this->authenticateEmailPass($email, $pass);
+    $this->authenticateEmailPass($email, $password);
   }
 
 
@@ -370,27 +376,23 @@ class App{
    */
   private function createUser($email, $password, $validated){
     $dbm = $this->getDbManager();
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $pass = $this->hashPassword($password); 
-    $uid = $this->generateUID();
     $dbm->insert(
-      'users',
+      getMeta('User')->getTableName(),
       [
-        'uid' => $uid,
         'email' => $email, 
-        'password' => $pass,
+        'password' => $password,
         'validated' => $validated
       ]
     );
   }
 
-  private function createUserExternal($email, $uid){
+  //private function createUserExternal($email, $uid){
     //set password to randomized string since authorization 
     //will be handled by external party and we wont handle logins 
     //for this user personally, ideally, no one will guess the password
-    $password = $this->generateUID();     
-    $this->createUser($email, $password, $uid, true);
-  }
+    //$password = $this->generateUID();     
+    //$this->createUser($email, $password, $uid, true);
+  //}
 
   /*
    * Perform a check on the user's usergroup, if the group level is
@@ -402,26 +404,40 @@ class App{
    * @return null
    */
 
-  public function authorise($group=0){
-    if($this->$auth == null){
+  public function authorise($group=1){
+    if($this->auth == null){
       throw new KnownException('', ERR_UNAUTHORISED);
     }
-    if($auth->user_group < $group){
+    $user = Models::fetchById('User', $this->auth->user_id);
+    if($user->group < $group){
       throw new KnownException('', ERR_UNAUTHORISED);
     }
   }
 
   /*
-   * Deauthenticates all keys linked to given
-   * user id
+   * Deauthenticates all keys linked to current user
    *
    * @throws KnownException
    * @return null
    */
   public function deauthenticateKeys(){
     if($this->auth){
-      $auth = $this->dbm->delete('auth_keys', [
+      $auth = $this->dbm->delete(getMeta('Auth')->getTableName(), [
         'user_id' => $this->auth->user_id
+      ]);
+    }
+  }
+
+  /*
+   * Deauthenticates current auth key
+   *
+   * @throws KnownException
+   * @return null
+   */
+  public function deauthenticateKey(){
+    if($this->auth){
+      $auth = $this->dbm->delete(getMeta('Auth')->getTableName(), [
+        'key' => $this->auth->key
       ]);
     }
   }
@@ -442,9 +458,9 @@ class App{
     if($expire == null){
       $expire = date('Y-m-d H:i:s', time() + 24*60*60* 7); //set auth key to expire after 7 days
     }
-    $this->dbm->insert('auth_keys', [
+    Models::create('Auth', [
       'user_id'   => $user_id,
-      'auth_key'  => $key,
+      'key'  => $key,
       'expires'   => $expire   
     ]);
     return $key;
@@ -513,7 +529,7 @@ class App{
    * @return null
    */
 
-  public function success($data){
+  public function success($data=null){
     $this->result(true, $data);
   }
 
