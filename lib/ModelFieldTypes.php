@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Config.php';
+//require_once 'Config.php';
 
 
 class BaseFieldType
@@ -26,10 +26,19 @@ class BaseFieldType
     //creates a string that is used to define sql column-type
     public function __toString()
     {
-        $this->stringValue .= ($this->default) ? " DEFAULT '$this->default'" : '';
+        $this->stringValue .= ($this->default) ? " DEFAULT $this->default" : '';
         $this->stringValue .= ($this->null) ? '':' NOT NULL';
         $this->stringValue .= ($this->unique) ? ' UNIQUE': '';
         return $this->stringValue;
+    }
+
+    /// we need these for checking if a value is needed for creation
+    public function isDefault(){
+      return $this->default;
+    }
+
+    public function isNullable(){
+      return $this->null;
     }
 }
 
@@ -122,6 +131,16 @@ class DateField extends BaseFieldType
     {
         //add the default
         $this->stringValue = "DATE";
+        return parent::__toString();
+    }
+}
+
+class DateTimeField extends BaseFieldType
+{
+    public function __toString()
+    {
+        //add the default
+        $this->stringValue = "DATETIME";
         return parent::__toString();
     }
 }
