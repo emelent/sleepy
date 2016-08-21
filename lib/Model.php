@@ -1,9 +1,6 @@
 <?php
 
-//require_once 'Config.php';
-//require_once 'App.php';
 require_once 'ModelFieldTypes.php';
-//require_once 'utils.php';
 
 class MetaFactory{
 
@@ -63,23 +60,28 @@ abstract class ModelMeta{
     $selectAll = "SELECT %s FROM `$tn`";
 
     $col_str = '';
+    $insert_col_str = '';
     $insert_str  = '';
     $update_str = '';
     $comma_delim = ', ';
     $len_comma_delim = strlen($comma_delim);
 
-    foreach($this->attr_define as $key => $value){
-      $col_str .= "`$key`$comma_delim";
+    foreach($this->getAttributeKeysWithoutDefaults() as $key){
       $insert_str .= ":$key$comma_delim";
+      $insert_col_str .= "`$key`$comma_delim";
+    }
+    foreach($this->getAttributeKeys() as $key){
+      $col_str .= "`$key`$comma_delim";
       $update_str .= "`$key` = :$key$comma_delim";
     }
 
     //remove last ', '
     $col_str = substr($col_str, 0, strlen($col_str) - $len_comma_delim);
     $insert_str = substr($insert_str, 0, strlen($insert_str) - $len_comma_delim);
+    $insertcol__str = substr($insert_str, 0, strlen($insert_str) - $len_comma_delim);
     $update_str = substr($update_str, 0, strlen($update_str) - $len_comma_delim);
 
-    $insert = sprintf($insert, $col_str, $insert_str);
+    $insert = sprintf($insert, $insert_col_str, $insert_str);
     $select = sprintf($select, "`id`, $col_str");
     $selectAll = sprintf($selectAll, "`id`, $col_str");
     $update = sprintf($update, $update_str);
@@ -149,6 +151,36 @@ abstract class ModelMeta{
     return array_keys($this->attr_define);
   }
 
+  public function getDefaultAttributeKeys(){
+    $keys = [];
+    foreach($this->attr_define as $key => $value){
+      if($value->isDefault()){
+        array_push($keys, $key);
+      }
+    }
+    return $keys;
+  }
+
+  public function getAttributeKeysWithoutDefaults(){
+    $keys = [];
+    foreach($this->attr_define as $key => $value){
+      if(!$value->isDefault()){
+        array_push($keys, $key);
+      }
+    }
+    return $keys;
+  }
+
+  public function getNullableAttributeKeys(){
+    $keys = [];
+    foreach($this->attr_define as $key => $value){
+      if($value->isNullable()){
+        array_push($keys, $key);
+      }
+    }
+    return $keys;
+  }
+
   public static function getPdo(){
     return ModelMeta::$pdo;
   }
@@ -163,7 +195,13 @@ final class Models{
   public static function create($modelName, $data){
     $meta = getMeta($modelName);
     $stmnt = $meta->getInsertStatement();
-    if(!arrayKeysSet($meta->getAttributeKeys(), $data)){
+    //add nullables if they are not present and set them to null
+    foreach($meta->getNullableAttributeKeys() as $key){
+      if(!isset($data[$key]))
+        $data[$key] = null;
+    }
+    $keys = $meta->getAttributeKeysWithoutDefaults();
+    if(!arrayKeysSet($keys, $data)){
       Models::throwInvalidData('create');
     }
     //TODO check if $data doesn't contain extra values
@@ -260,7 +298,7 @@ abstract class Model{
     if(isset($this->{$method}) && is_callable($this->{$method})){
       return call_user_func($this->{$method}, $args);
     }else{
-      throw new exception(
+      throw new UnknownMethodCallException(
         "$classname error: call to undefined method $classname::{$method}()");
     }
   }
