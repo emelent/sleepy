@@ -13,7 +13,7 @@ define('DSN', 'mysql');
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'api_db');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'root');
 
 /* Turn this to false for Production */
 define('DEBUG', true);
