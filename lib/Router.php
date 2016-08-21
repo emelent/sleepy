@@ -59,6 +59,10 @@ class Router{
         if(isset($_GET["p$i"]))
           Router::$url .= $_GET["p$i"] . '/';
       }
+      //resolve empty string to '/'
+      if(Router::$url == ''){
+        Router::$url='/';
+      }
     }
     return Router::$url;
   }

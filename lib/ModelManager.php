@@ -11,10 +11,10 @@ final class ModelManager{
   public static function getSqlSchema(){
     $sqlString = '';
     foreach(ModelManager::$models as $model){
-      $sql .= getMeta($model)->generateSqlSchema() . "\n";
+      $sqlString .= getMeta($model)->getSqlSchema() . "\n";
     }
 
-    $sqlString;
+    return $sqlString;
   }
 
   public static function clearDb(){
@@ -31,6 +31,7 @@ final class ModelManager{
     //but for now I do it separately for easier error handling
     $dbMgr = App::getInstance()->getDbManager();
     foreach(ModelManager::$models as $model){
+      echo "Creating `$model` table\n";
       $dbMgr->execQuery(getMeta($model)->getSqlSchema()); 
     }
   }

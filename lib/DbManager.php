@@ -19,6 +19,7 @@
  */
 class DbManager{
   
+  //TODO add back-ticks to all column names in query strings
   /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
 
