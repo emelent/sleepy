@@ -1,9 +1,9 @@
 <?php
 
 //require_once 'Config.php';
-require_once 'App.php';
+//require_once 'App.php';
 require_once 'ModelFieldTypes.php';
-require_once 'utils.php';
+//require_once 'utils.php';
 
 class MetaFactory{
 

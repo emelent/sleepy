@@ -1,7 +1,5 @@
 <?php
 
-require_once 'Model.php';
-
 final class ModelManager{
 
   private static $models = [];

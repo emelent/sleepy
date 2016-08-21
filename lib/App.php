@@ -20,11 +20,6 @@
 // ===========================================================================
 
 
-require_once 'Config.php';
-require_once 'DbManager.php';
-require_once 'Controller.php';
-require_once 'Router.php';
-
 
 // set the header  content type
 header('Content-Type: application/json');
@@ -259,7 +254,7 @@ class App{
    */
 
   public function hashPassword($password){
-    return hash('sha256', $_POST['password']);
+    return hash('sha256', $password);
   }
 
   /*
