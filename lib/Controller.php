@@ -29,6 +29,11 @@ abstract class Controller{
     }
   }
 
+  protected function assertArrayKeysSet($keys, $array){
+    if(!arrayKeysSet(['email', 'password'], $_POST)){
+      throw new KnownException('Missing request parameters', ERR_INCOMP_REQ);
+    }
+  }
   /*
    * Handle function calls to dynamic methods
    *
@@ -45,7 +50,7 @@ abstract class Controller{
     if(isset($this->{$method}) && is_callable($this->{$method})){
       return call_user_func($this->{$method}, $args);
     }else{
-      throw new exception(
+      throw new UnknownMethodCallException(
         "$classname error: call to undefined method $classname::{$method}()");
     }
   }
@@ -136,4 +141,12 @@ class _InjectController extends Controller{
  * HelloWorldController::world(...)
  */
 abstract class RoutedController extends Controller{
+
+  //TODO polish this up, remove these constant strings and replace them with
+  //glob vars
+  protected function failIfRequestNotIn($app, $methods){
+    if(!in_array($_SERVER['REQUEST_METHOD'], $methods)){
+      $app->fail("Invalid request method");
+    }
+  }
 }
