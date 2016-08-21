@@ -1,10 +1,9 @@
 <?php
-namespace DataType;
 
 require_once 'Config.php';
 
 
-class BaseDataType
+class BaseFieldType
 {
     protected $stringValue = '';
     protected $null = false;
@@ -20,7 +19,7 @@ class BaseDataType
         foreach ($assoc as $property => $value) {
             if (isset($this->{$property})) {
                 $this->{$property} = $value;
-            }
+            }        
         }
     }
 
@@ -28,22 +27,34 @@ class BaseDataType
     public function __toString()
     {
         $this->stringValue .= ($this->default) ? " DEFAULT '$this->default'" : '';
-        $this->stringValue .= ($this->null) ? '':" NOT NULL";
-        $this->stringValue .= ($this->unique) ? '':" UNIQUE";
+        $this->stringValue .= ($this->null) ? '':' NOT NULL';
+        $this->stringValue .= ($this->unique) ? ' UNIQUE': '';
         return $this->stringValue;
     }
 }
 
+class CustomField extends BaseFieldType{
+  public function __construct($sqlString){
+    $this->stringValue = $sqlString;
+  }
+
+  public function __toString(){
+    return $this->stringValue;
+  }
+}
+
 # STANDARD SQL TYPES
-class CharField extends BaseDataType
+class CharField extends BaseFieldType
 {
 
-    private $length = null;
+    protected $length = null;
 
+    public function __construct($length, $assoc=null){
+      parent::__construct($assoc);
+      $this->length = $length;
+    }
     public function __toString()
     {
-      if($this->length == null)
-        throw new KnownException('Length not defined in VARCHAR SQLDataType', ERR_UNEXPECTED);
       $this->stringValue = "VARCHAR($this->length)";
       return parent::__toString();
     }
@@ -52,7 +63,7 @@ class CharField extends BaseDataType
 ;
 
 
-class TextField extends BaseDataType
+class TextField extends BaseFieldType
 {
     public function __toString()
     {
@@ -64,7 +75,7 @@ class TextField extends BaseDataType
 
 ;
 
-class IntegerField extends BaseDataType
+class IntegerField extends BaseFieldType
 {
     public function __toString()
     {
@@ -74,7 +85,7 @@ class IntegerField extends BaseDataType
     }
 }
 
-class FloatField extends BaseDataType
+class FloatField extends BaseFieldType
 {
     public function __toString()
     {
@@ -84,7 +95,7 @@ class FloatField extends BaseDataType
     }
 }
 
-class BooleanField extends BaseDataType
+class BooleanField extends BaseFieldType
 {
     public function __toString()
     {
@@ -94,7 +105,7 @@ class BooleanField extends BaseDataType
     }
 }
 
-class BlobField extends BaseDataType
+class BlobField extends BaseFieldType
 {
     public function __toString()
     {
@@ -105,7 +116,7 @@ class BlobField extends BaseDataType
 }
 
 
-class DateField extends BaseDataType
+class DateField extends BaseFieldType
 {
     public function __toString()
     {
@@ -114,45 +125,4 @@ class DateField extends BaseDataType
         return parent::__toString();
     }
 }
-
-# Database Relations
-
-class BaseDBRel{
-
-    protected $stringValue;
-    private $relatedTable;
-
-    public function __construct($relatedTable, $unique){
-        $this->stringValue = "INT NOT NULL ";
-        $this->stringValue .= ($unique)? "UNIQUE " : "";
-        $this->stringValue .= "REFERENCES $relatedTable(id)";
-        $this->relatedTable = $relatedTable;
-    }
-
-    public function getRelatedTableName(){
-        return $this->relatedTable;
-    }
-
-    public function __toString()
-    {
-        return $this->stringValue;
-    }
-}
-
-/*This class handles 1..1 relations between tables*/
-class OneToOneRel extends BaseDBRel{
-    
-    public function __construct($relatedTable){
-        parent::__construct($relatedTable, true);
-    }
-}
-
-/*This class handles 1..M relations between tables*/
-class OneToManyRel extends BaseDBRel{
-    
-    public function __construct($relatedTable){
-        parent::__construct($relatedTable, false);
-    }
-}
-
 
