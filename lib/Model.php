@@ -17,8 +17,8 @@ class MetaFactory{
   }
 }
 
-function getMeta($name){
-  return MetaFactory::getMeta($name);
+function getMeta($modelName){
+  return MetaFactory::getMeta($modelName . 'Meta');
 }
 
 abstract class ModelMeta{
@@ -33,18 +33,21 @@ abstract class ModelMeta{
   private $updateStatement;
   private $deleteStatement;
   private $selectStatement;
+  private $selectAllStatement;
+
+  //TODO delete all statement, delete multiple, update multiple
 
   private $sqlSchema;
 
 
-  public function __construct($tableName, $modelName, $attr_define){
+  public function __construct($tableName, $attr_define){
     if(ModelMeta::$pdo == null)
       ModelMeta::$pdo = App::getInstance()->getDbManager()->getPdo();
     if(count($this->attr_define)){
         throw new KnownException('ModelMeta created without any attributes', ERR_UNEXPECTED);
     }
     $this->tableName = $tableName;
-    $this->modelName = $modelName;
+    $this->modelName = substr(get_class($this), 0, strlen(get_class($this)) - strlen('Meta'));
     $this->attr_define = $attr_define;
     $this->prepareStatements();
   }
@@ -57,6 +60,7 @@ abstract class ModelMeta{
     $update = "UPDATE `$tn` SET %s WHERE id = :id";
     $delete = "DELETE FROM `$tn` WHERE id = :id";
     $select = "SELECT %s FROM `$tn` WHERE id = :id";
+    $selectAll = "SELECT %s FROM `$tn`";
 
     $col_str = '';
     $insert_str  = '';
@@ -77,6 +81,7 @@ abstract class ModelMeta{
 
     $insert = sprintf($insert, $col_str, $insert_str);
     $select = sprintf($select, "`id`, $col_str");
+    $selectAll = sprintf($selectAll, "`id`, $col_str");
     $update = sprintf($update, $update_str);
 
     //create pdo statements
@@ -84,6 +89,7 @@ abstract class ModelMeta{
     $this->updateStatement = $pdo->prepare($update);
     $this->deleteStatement = $pdo->prepare($delete);
     $this->selectStatement = $pdo->prepare($select);
+    $this->selectAllStatement = $pdo->prepare($selectAll);
   }
 
   public function getSqlSchema(){
@@ -132,6 +138,9 @@ abstract class ModelMeta{
     return $this->selectStatement;
   }
 
+  public function getSelectAllStatement(){
+    return $this->selectAllStatement;
+  }
   public function getAttributeDefinitions(){
     return $this->attr_define;
   }
@@ -145,67 +154,76 @@ abstract class ModelMeta{
   }
 }
 
-final class ModelCRUD{
+final class Models{
 
   private static function throwInvalidData($method){
-      throw new KnownException("Invalid data passed to ModelCRUD::$method()", 
-        $app->ERR_BAD_REQ);
+      throw new KnownException("Invalid data passed to Models::$method()", ERR_BAD_REQ);
   }
 
-  public static function create($metaName, $data){
-    $meta = getMeta($metaName . 'Meta');
+  public static function create($modelName, $data){
+    $meta = getMeta($modelName);
     $stmnt = $meta->getInsertStatement();
     if(!arrayKeysSet($meta->getAttributeKeys(), $data)){
-      ModelCRUD::throwInvalidData('create');
+      Models::throwInvalidData('create');
     }
     //TODO check if $data doesn't contain extra values
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
 
-    return ModelCRUD::fetchById($meta, $id);
+    return Models::fetchById($modelName, $id);
   }
 
-  public static function delete($meta, $data){
+  public static function delete($modelName, $data){
+    $meta = getMeta($modelName);
     $stmnt = $meta->getDeleteStatement();
     $stmnt->execute($data);
   }
 
-  public static function update($meta, $data){
+  public static function update($modelName, $data){
+    $meta = getMeta($modelName);
     if(!isset($data['id'])){
-      MOdelCRUD::throwInvalidData('update');
+      Models::throwInvalidData('update');
     }
     $stmnt = $meta->getUpdateStatement();
     $stmnt->execute($data);
   }
 
-  public static function fetchSingle($meta, $data){
-    $stmnt = ModelCRUD::createSelectStatement($meta, $data);
-    $stmnt->execute($data);
+  public static function fetchSingle($modelName, $data=null){
+    if($data == null){
+      $stmnt = getMeta($modelName)->getSelectAllStatement();
+      $stmnt->execute();
+    }else{
+      $stmnt = Models::createSelectStatement($modelName, $data);
+      $stmnt->execute($data);
+    }
 
     return $stmnt->fetch();
   } 
 
-  public static function fetchAll($meta, $data){
-    $stmnt = ModelCRUD::createSelectStatement($meta, $data);
-    $stmnt->execute($data);
+  public static function fetchAll($modelName, $data=null){
+    if($data == null){
+      $stmnt = getMeta($modelName)->getSelectAllStatement();
+      $stmnt->execute();
+    }else{
+      $stmnt = Models::createSelectStatement($modelName, $data);
+      $stmnt->execute($data);
+    }
 
     return $stmnt->fetchAll();
   }
 
-  public static function fetchById($meta, $id){
+  public static function fetchById($modelName, $id){
+    $meta = getMeta($modelName);
     $stmnt = $meta->getSelectStatement();
     $stmnt->execute(['id' => $id]);
-    //set statement fetch modes
-    $stmnt->setFetchMode(
-      PDO::FETCH_CLASS, 
-      $meta->getModelName(), 
-      array($meta)
-    );
+
+    $stmnt->setFetchMode(PDO::FETCH_CLASS, $meta->getModelName());
 
     return $stmnt->fetch();
   }
 
-  private static function createSelectStatement($meta, $data){
+  private static function createSelectStatement($modelName, $data){
+    $meta = getMeta($modelName);
     //create query str
     $query = 'SELECT * FROM `' . $meta->getTableName() . '` WHERE %s';
     $str = '';
@@ -216,9 +234,8 @@ final class ModelCRUD{
     $str = substr($str, 0, strlen($str) - strlen($delim));
     $query = sprintf($query, $str);
 
-    //set fetch mode
-    setPdoFetchModeClass($stmnt, $meta);
     $stmnt = $meta->getPdo()->prepare($query);
+    $stmnt->setFetchMode(PDO::FETCH_CLASS, $meta->getModelName());
     return $stmnt;
   }
 }
@@ -230,10 +247,10 @@ abstract class Model{
   protected $meta;
 
 
-  public function __construct($meta){
+  public function __construct(){
     $this->className = get_class($this);
     $this->pdo = App::getInstance()->getDbManager()->getPdo();
-    $this->meta = $meta;
+    $this->meta = getMeta($this->className);
     $this->createGettersAndSetters();
   }
 
@@ -264,16 +281,24 @@ abstract class Model{
 
   public final function save(){
     //save model to database
-    ModelCRUD::update($this->meta, $this->toArray());
+    if(isset($this->id)){
+      Models::update($this->className, $this->toArray());
+    }else{
+      $obj = Models::create($this->className, $this->toArrayNoId());
+      $this->id = $obj->id;
+    }
   }
 
   public final function delete(){
     //delete model from database
-    ModelCRUD::update($this->meta, ['id' => $this->id]);
+    Models::delete($this->className, ['id' => $this->id]);
+
+    //clear id, since the record is no longer in the database
+    $this->id = null;
   }
 
   public final function toArray(){
-    $record = [];
+    $record = ['id' => $this->id];
     foreach($this->meta->getAttributeKeys() as $key){
       $record[$key] = $this->{$key};
     }
