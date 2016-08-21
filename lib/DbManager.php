@@ -213,7 +213,7 @@ class DbManager{
    * @throws KnownException
    * @return null
    */
-  public function execQuery($query, $data){
+  public function execQuery($query, $data=null){
     $stmnt = $this::$pdo->prepare($query);
     $stmnt->execute($data);
   }
@@ -231,7 +231,7 @@ class DbManager{
    * @throws KnownException
    * @return null
    */
-  public function fetchQuery($query, $data, $all=True){
+  public function fetchQuery($query, $data=null, $all=True){
     $stmnt = $this::$pdo->prepare($query);
     $stmnt->setFetchMode(PDO::FETCH_OBJ);
 
