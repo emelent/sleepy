@@ -2,8 +2,13 @@
 
 require_once 'lib/App.php';
 
+class HelloController extends RoutedController{
+  public function greet($app, $args){
+    $app->success("Hello World!");
+  }
+}
 
-
+$app->route(['hello/*' => new HelloController()]);
 $app->route([
   'bye/:name/:surname/'      =>  function($app){
                     $app->success('Goodbye ' . $app->params['name'] . ' ' . $app->params['surname']);

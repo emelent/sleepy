@@ -76,7 +76,7 @@ class App{
   private function __construct(){
     $this->router = new Router();
     try{
-      $this->dbm = new DbManager($this, DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
+      $this->dbm = new DbManager(DSN, DB_HOST, DB_NAME, DB_USER, DB_PASS);
     }
     catch(KnownException $e){
       /* Handle known exceptions i.e. exceptions thrown by our logic */
@@ -155,13 +155,12 @@ class App{
       $url = $this->router->getURL();
       $controller = $this->router->getController();
       if($controller == null){
-        throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
+        throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
       }
       //retreive params
       $this->params = $controller->_getParams();
 
-      // run the method on controller
-      $controller->$method($this);
+      $this->runControllerMethod($url, $method, $controller);
     }
     catch(KnownException $e){
       /* Handle known exceptions i.e. exceptions thrown by our logic */
@@ -188,6 +187,32 @@ class App{
     }
   }
 
+  /*
+   * Runs the requested method on a given controller.
+   *
+   * @param $url              = Url Route
+   * @param $request_method   = Request method (post, get, put, delete) 
+   * @param $controller       = Controller to be used 
+   *
+   * @throws KnownException
+   * @return null
+   */
+
+  private function runControllerMethod($url, $request_method, $controller){
+      if($controller instanceof RoutedController){
+        $args = explode('/', substr($url, 0, strlen($url) -1));
+        $args = array_reverse($args);
+        array_pop($args);
+        $args = array_reverse($args);
+        try{
+          $controller->{$args[0]}($this, $args);
+        }catch(Exception $e){
+          throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
+        }
+      }else{
+        $controller->$request_method($this);
+      }
+  }
 
   /*
    * Verifies given key, calls $this->fail if invalid

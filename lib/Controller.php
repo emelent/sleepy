@@ -24,7 +24,7 @@ abstract class Controller{
     $methods = ['delete', 'get', 'post', 'put'];
     foreach($methods as $method){
       $this->$method = function($args){
-        $args[0]->result(null, true, null);
+        $args[0]->success(null);
       };
     }
   }
@@ -117,103 +117,23 @@ class _InjectController extends Controller{
   }
 }
 
-//============================================================================
-//
-// RoutedController is no longer going to be used because of routing bugs
-// when using named variables in url. It was an ambitious move but it would
-// seem that life would be better without it
-//
-//===========================================================================
-
 /*
- * RoutedController class is a Controller which contains it's own
- * Router object. This is to allow the grouping of related routes
- * with a common $domain name. The RoutedController will then
- * catch all requests beginning with domain name and then handle
- * specific routing. This also allows for the grouping of common
- * methods amongst the requests all contained in a single isolated
- * Controller class.
+ * RoutedController class which allows user to access public method calls
+ * via a url route, e.g.
  *
- * E.g.
- *  A controller for all requests pertaining a user profile can
- *  be grouped into a class ProfileController extending RoutedController,
- *  with the $domain set to 'profiles/' in the contructor. So the class
- *  might look something like this.
+ *    class HelloWorldController extends RoutedController{
+ *      public function world($app, $args){
+ *        $app->success("Hello World"); 
+ *      }
+ *    }
+ *    ...
+ *    //controller routes must have the '*' to catch all routes that begin with
+ *    // 'hello/'
+ *    $app->route(['hello/*' => new HelloWorldController()]);
+ *
  * 
- *
- *  class ProfileController extends RoutedController{
- *    public function __construct($domain){
- *      parent::__construct($domain);   //always call parent constructor
- *      //sub routing
- *      $this->route([
- *        'view/'        => function($app){...},
- *        'update/'      => function($app){...},
- *        'delete/'      => function($app){...},
- *      ]);
- *    }
- *  }
- *
- *  or if you want you can remove the constructor parameter and 
- *  have something like
- *
- *  class ProfileController extends RoutedController{
- *    public function __construct(){
- *      parent::__construct('profiles/');   //always call parent constructor
- *      //sub routing
- *      $this->route([
- *        'view/'        => function($app){...},
- *        'update/'      => function($app){...},
- *        'delete/'      => function($app){...},
- *      ]);
- *    }
- *  }
- *  
- *  then your routing to the App object will  look like
- *
- *  $app->route([
- *     'profiles/'    =>  new ProfileController(),
- *  ]);
- *
- *  or 
- *
- *  $app->route([
- *     'profiles/'    =>  new ProfileController('profiles/'),
- *  ]);
- *
- *  depending on how you defined your constructor. However the app route MUST
- *  be the same as the route you pass as the RoutedController $domain
- *
+ * After mapping that, access <api-route>/hello/world/ will execute 
+ * HelloWorldController::world(...)
  */
-
-//abstract class RoutedController extends Controller{
-  //private $router;
-
-  /*
-   * @param $domain =  String common domain route 
-   */
-  //public function __construct($domain){
-    //$this->router = new Router($domain);
-    //$methods = ['delete', 'get', 'post', 'put'];
-    //foreach($methods as $method){
-      //$this->$method = function($args) use (&$method){
-        //$url = $this->router->getURL();
-        //$controller = $this->router->getController();
-        //if($controller == null){
-          //throw new KnownException("No route setup for '$url'", ERR_BAD_ROUTE);
-        //}
-        //$controller->$method($args[0]);
-      //};
-    //}
-  //}
-
-  /*
-   * Handles routing via the Router object
-   *
-   * @throws KnownException
-   * @return null
-   */
-
-  //protected function route($routes){
-    //$this->router->route($routes);
-  //}
-//}
+abstract class RoutedController extends Controller{
+}
