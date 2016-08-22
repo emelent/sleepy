@@ -30,7 +30,7 @@ abstract class Controller{
   }
 
   protected function assertArrayKeysSet($keys, $array){
-    if(!arrayKeysSet(['email', 'password'], $_POST)){
+    if(!arrayKeysSet($keys, $array)){
       throw new KnownException('Missing request parameters', ERR_INCOMP_REQ);
     }
   }
