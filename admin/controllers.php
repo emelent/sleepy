@@ -45,11 +45,6 @@ class UserController extends RoutedController{
 
 class AuthController extends RoutedController{
 
-  public function key($app, $args){
-    $app->authorise();
-    $app->success($app->auth->key);
-  }
-
   public function deauthenticate($app, $args){
     $app->authorise();
     $app->deauthenticateKeys();
