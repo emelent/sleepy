@@ -1,9 +1,13 @@
 TODO
 
+  => Add OAuth2 support
+
   => Re-evaluate the App class as the core of the library, consider separating
      responses, and having routing done via a singleton router class.
      Let the App class be used to make sure all errors are properly handled and
      that responses are of the correct format.
+
+     Use php password_hash method for salts
 
   => Update RoutedController to use prefixes on response methods
 
