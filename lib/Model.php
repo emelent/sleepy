@@ -27,6 +27,7 @@ abstract class ModelMeta{
   private $attr_define;
 
   private $insertStatement;
+  private $insertStrictStatement;
   private $updateStatement;
   private $deleteStatement;
   private $selectStatement;
@@ -54,6 +55,7 @@ abstract class ModelMeta{
     $pdo = $this->getPdo();
 
     $insert = "INSERT INTO `$tn` (%s) VALUES (%s)";
+    $insert_strict = "INSERT INTO `$tn` (%s) VALUES (%s)";
     $update = "UPDATE `$tn` SET %s WHERE id = :id";
     $delete = "DELETE FROM `$tn` WHERE id = :id";
     $select = "SELECT %s FROM `$tn` WHERE id = :id";
@@ -62,6 +64,8 @@ abstract class ModelMeta{
     $col_str = '';
     $insert_col_str = '';
     $insert_str  = '';
+    $insert_strict_col_str = '';
+    $insert_strict_str  = '';
     $update_str = '';
     $comma_delim = ', ';
     $len_comma_delim = strlen($comma_delim);
@@ -73,21 +77,27 @@ abstract class ModelMeta{
     foreach($this->getAttributeKeys() as $key){
       $col_str .= "`$key`$comma_delim";
       $update_str .= "`$key` = :$key$comma_delim";
+      $insert_strict_str .= ":$key$comma_delim";
+      $insert_strict_col_str .= "`$key`$comma_delim";
     }
 
     //remove last ', '
     $col_str = substr($col_str, 0, strlen($col_str) - $len_comma_delim);
     $insert_str = substr($insert_str, 0, strlen($insert_str) - $len_comma_delim);
-    $insertcol__str = substr($insert_str, 0, strlen($insert_str) - $len_comma_delim);
+    $insert_col_str = substr($insert_col_str, 0, strlen($insert_col_str) - $len_comma_delim);
+    $insert_strict_str = substr($insert_strict_str, 0, strlen($insert_strict_str) - $len_comma_delim);
+    $insert_strict_col_str = substr($insert_strict_col_str, 0, strlen($insert_strict_col_str) - $len_comma_delim);
     $update_str = substr($update_str, 0, strlen($update_str) - $len_comma_delim);
 
     $insert = sprintf($insert, $insert_col_str, $insert_str);
+    $insert_strict = sprintf($insert_strict, $insert_strict_col_str, $insert_strict_str);
     $select = sprintf($select, "`id`, $col_str");
     $selectAll = sprintf($selectAll, "`id`, $col_str");
     $update = sprintf($update, $update_str);
 
     //create pdo statements
     $this->insertStatement = $pdo->prepare($insert);
+    $this->insertStrictStatement = $pdo->prepare($insert_strict);
     $this->updateStatement = $pdo->prepare($update);
     $this->deleteStatement = $pdo->prepare($delete);
     $this->selectStatement = $pdo->prepare($select);
@@ -126,6 +136,10 @@ abstract class ModelMeta{
 
   public function getInsertStatement(){
     return $this->insertStatement;
+  }
+
+  public function getInsertStrictStatement(){
+    return $this->insertStrictStatement;
   }
 
   public function getDeleteStatement(){
@@ -191,20 +205,45 @@ final class Models{
   private static function throwInvalidData($method){
       throw new KnownException("Invalid data passed to Models::$method()", ERR_BAD_REQ);
   }
+  ///TODO implement another create function that requires all value fields to be given,
+  
+  public static function createStrict($modelName, $data){
+    $meta = getMeta($modelName);
+    //Models::assertKeys($meta->getAttributeKeys(), $data, 'createStrict');
+    $stmnt = $meta->getInsertStrictStatement();
+    var_dump($data);
+    echo $stmnt->queryString . PHP_EOL;
+    $stmnt->execute($data);
+    $id = $meta->getPdo()->lastInsertId();
+    return Models::fetchById($modelName, $id);
+  }
+
+  private static function assertKeys($keys, $data, $methodName){
+    if(!arrayKeysSet($keys, $data)){
+      Models::throwInvalidData($methodName);
+    }
+  }
+
+  private static function nullifyExcess($keys, &$data){
+    //TODO implement me
+    foreach($data as $key => $value){
+      if(!isset($data[$key]))
+        unset($data[$key]);
+    }
+  }
 
   public static function create($modelName, $data){
     $meta = getMeta($modelName);
-    $stmnt = $meta->getInsertStatement();
+
+    //set nullables and defaults to null so they are not considered
     //add nullables if they are not present and set them to null
-    foreach($meta->getNullableAttributeKeys() as $key){
-      if(!isset($data[$key]))
-        $data[$key] = null;
-    }
     $keys = $meta->getAttributeKeysWithoutDefaults();
-    if(!arrayKeysSet($keys, $data)){
-      Models::throwInvalidData('create');
-    }
-    //TODO check if $data doesn't contain extra values
+    Models::nullifyExcess($keys, $data);
+    Models::assertKeys($keys, $data, 'create');
+
+    //TODO remove excess key value pairs, to prevent PDO errors, not sure if 
+    $stmnt = $meta->getInsertStatement();
+    echo $stmnt->queryString . PHP_EOL;
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
 
@@ -213,15 +252,14 @@ final class Models{
 
   public static function delete($modelName, $data){
     $meta = getMeta($modelName);
+    Models::assertKeys(['id'], $data, 'update');
     $stmnt = $meta->getDeleteStatement();
     $stmnt->execute($data);
   }
 
   public static function update($modelName, $data){
     $meta = getMeta($modelName);
-    if(!isset($data['id'])){
-      Models::throwInvalidData('update');
-    }
+    Models::assertKeys(['id'], $data, 'update');
     $stmnt = $meta->getUpdateStatement();
     $stmnt->execute($data);
   }
@@ -315,12 +353,25 @@ abstract class Model{
     }
   }
 
+  private function allAttributesSet(){
+    foreach($this->meta->getAttributeKeys() as $key){
+      if(!isset($this->$key))
+        return false;
+    }
+    return true;
+  }
+
   public final function save(){
     //save model to database
     if(isset($this->id)){
       Models::update($this->className, $this->toArray());
     }else{
-      $obj = Models::create($this->className, $this->toArrayNoId());
+      if($this->allAttributesSet()){
+        echo "using strict\n";
+        $obj = Models::createStrict($this->className, $this->toArrayNoId());
+      }else{
+        $obj = Models::create($this->className, $this->toArrayNoId());
+      }
       $this->id = $obj->id;
     }
   }
@@ -345,7 +396,10 @@ abstract class Model{
     $record = [];
     foreach($this->meta->getAttributeKeys() as $key){
       if($key == 'id') continue;
-      $record[$key] = $this->{$key};
+      if(isset($this->$key))
+        $record[$key] = $this->$key;
+      else
+        $record[$key] = null;
     }
     return $record;
   }
