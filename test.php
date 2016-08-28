@@ -25,7 +25,7 @@ $glob = new Glob();
 $glob->name = "Marcus";
 $glob->age = 5;
 $glob->bio = "This is my bio";
-$glob->created = date("today");
+$glob->created = date("Y-m-d H:i:s");
 
 $glob->save();
 
