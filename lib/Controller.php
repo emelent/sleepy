@@ -149,4 +149,8 @@ abstract class RoutedController extends Controller{
       $app->fail("Invalid request method");
     }
   }
+
+  public function index($app, $args){
+    $app->success();
+  }
 }
