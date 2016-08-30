@@ -322,10 +322,20 @@ abstract class Model{
   protected $meta;
 
 
-  public function __construct(){
+  public function __construct($data=null){
     $this->className = get_class($this);
     $this->meta = getMeta($this->className);
     $this->createGettersAndSetters();
+
+    //set values
+    if($data != null){
+      $keys = $this->meta->getAttributeKeys();
+      foreach($keys as $key){
+        if(isset($data[$key])){
+          $this->$key = $data[$key];
+        }
+      }
+    }
   }
 
   public final function __call($method, $args){
