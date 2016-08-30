@@ -162,8 +162,6 @@ class App{
       if($controller == null){
         throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
       }
-      //retreive params
-      $this->params = $controller->_getParams();
 
       $this->runControllerMethod($url, $method, $controller);
     }
@@ -210,12 +208,25 @@ class App{
         array_pop($args);
         $args = array_reverse($args);
         try{
-          $controller->{$args[0]}($this, $args);
+          if(count($args) < 1){
+            $controller->index($this, $args);
+          }else{
+            $method = strtolower($request_method) . '_' . $args[0];
+            $controller->$method($this, $args);
+          }
         }catch(UnknownMethodCallException $e){
-          throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
-          //throw new KnownException($e->getMessage(), ERR_BAD_ROUTE);
+          try{
+            $method = 'all_' . $args[0];
+            $controller->$method($this, $args);
+          }catch(UnknownMethodCallException $e){
+            throw new KnownException("No controller for route or invalid request method '$url'", ERR_BAD_ROUTE);
+          }
         }
       }else{
+        //retreive params, this is not done for RoutedController, it's not necessary
+        //since it has it's own way of getting params and doesn't need to go through
+        //the App to get params
+        $this->params = $controller->_getParams();
         $controller->$request_method($this);
       }
   }

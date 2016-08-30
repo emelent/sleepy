@@ -81,6 +81,15 @@ class Router{
         return $ctrl;
       }
     }
+
+    //TODO "I'm a hack, a cheap hack, nobody's gonna fix me, nahahahahaha"
+    $url = implode('\/', explode('/', $url));
+    $url = "/^$url(.)*\/$/"; 
+  
+    if(isset($this->routes[$url])){
+      return $this->routes[$url];
+    }
+    
     return null;
   }
 
