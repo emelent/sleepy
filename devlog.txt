@@ -70,3 +70,8 @@ TODO
       route(['hey/:name/:age/' => function($name, $age){...}])
 
 
+  => Update DbManager, or rather create Query objects, which can be run bare,
+     and return standard objects, or pass it to Models::<crud>() method to
+     return Models. That way non "select" statements wont run a "fetch" to 
+     return the newly edited model or inserted model like they normally do
+     with Model::create, therefore making it faster
