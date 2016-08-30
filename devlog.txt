@@ -25,10 +25,15 @@ TODO
         }
       }
 
+      DONE
+
   => Update Model create method to first create blank Model, then set properties
      to any given values and call save to create, that way we can create new models
      but can't save without setting the required variables, and creations happen 
      solely in save code.
+
+
+     DONE
 
   => Implement some sort of migrations thingy, I'm thinking along the lines of 
      a JSON file, that keeps track of db changes and allows reverting back and 
@@ -42,7 +47,7 @@ TODO
      to create more complex query strings which can be fed to a Models::fetch,
      Models::delete, and Models::update
 
-     'DELETE FROM `table` WHERE `name` LIKE '%chris' AND `age` = 25;
+     'DELETE FROM `table` WHERE `name` LIKE '%chris%' AND `age` = 25;
      Query::on('table')->delete(['name' => ['like', '%chris%'], 'age' => 25]))
      DbManager::fetchAll('table', [''])
 

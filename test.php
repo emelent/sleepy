@@ -7,8 +7,8 @@ class GlobMeta extends ModelMeta{
 
   public function __construct(){
     parent::__construct(
-      'globs', 
-      [
+      'globs',  //table name
+      [ //table columns
         'name' => new CharField(50),
         'age' => new IntegerField(),
         'bio' => new TextField(),
@@ -21,12 +21,7 @@ class Glob extends Model {}
 
 ModelManager::register('Glob');
 ModelManager::recreateTables();
-$glob = new Glob();
-$glob->name = "Marcus";
-$glob->age = 5;
-$glob->bio = "This is my bio";
-$glob->created = date("Y-m-d H:i:s");
-
+$glob = new Glob(['name'=>'Marcus', 'age'=> 5, 'bio'=>'This is the bio']);
 $glob->save();
 
 
