@@ -9,6 +9,8 @@ TODO
 
      Use php password_hash method for salts
 
+     DONE
+
   => Update RoutedController to use prefixes on response methods
 
       class HelloController ... {
@@ -51,6 +53,9 @@ TODO
      Query::on('table')->delete(['name' => ['like', '%chris%'], 'age' => 25]))
      DbManager::fetchAll('table', [''])
 
+
+     Query::rawSelect('SELECT FROM  `table` WHERE `name` LIKE `this`');
+     Query::rawExecute('DELETE FROM  `table` WHERE `name` LIKE `this`');
      You know what, scrap query constructors, why hide the power of SQL, add a
      custom query slot in Model::fetch, delete, update
   => Remove any methods that require $app argument, since app is static and can
