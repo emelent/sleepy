@@ -18,55 +18,13 @@
  */
 class Router{
 
-  private $routes = [];
-  private $domain;
+  private static $routes = [];
+  // using '/' as domain, 
+  // e.g. if using '/api/' as domain, then
+  //      the domain would be '/^api\/'
+  // so '/^<domain>\/'
+  private static $domain = '/^'; 
   private static $url = null;
-
- /*
-  * @param $domain =  String common domain route 
-  */
-  public function __construct($domain=''){
-    if(substr($domain, -1, 1) != '/' && $domain != '')
-      $domain .= '/';
-    $this->domain = '/^' . str_replace('/', '\/', $domain);
-  }
-
-
-
-  /*
-   * Returns all the routed paths as an array of regular expressions
-   *
-   * @return Array
-   */
-  public function getRoutes(){
-    return array_keys($this->routes);
-  }
-
-
-  /*
-   * Returns the request url written in a neat form with
-   * each request parameter following the next after a forward slash,
-   * much like what the .htaccess file does. This is to give order to
-   * the position of the request parameters so that the request can
-   * be routed using regular expressions
-   *
-   * @return String
-   */
-  public static function getURL(){
-    if(Router::$url == null){
-      Router::$url  = '';
-      for($i=1; $i < 5; $i++){
-        if(isset($_GET["p$i"]))
-          Router::$url .= $_GET["p$i"] . '/';
-      }
-      //resolve empty string to '/'
-      if(Router::$url == ''){
-        Router::$url='/';
-      }
-    }
-    return Router::$url;
-  }
-
 
   /*
    * Returns the controller routed to the current request url
@@ -74,20 +32,22 @@ class Router{
    *
    * @return Controller|null
    */
-  public function getController(){
-    $url = $this->getURL();
-    foreach($this->routes as $regex  => $ctrl){
+  public static function getController($url){
+    foreach(Router::$routes as $regex  => $ctrl){
       if(preg_match($regex, $url)){
         return $ctrl;
       }
     }
 
     //TODO "I'm a hack, a cheap hack, nobody's gonna fix me, nahahahahaha"
+    //did this to solve routing to index on RoutedController so that
+    //if a RoutedController(HelloController) is routed to 'helloworld/*', a url of '/helloworld/' 
+    //should return HelloController
     $url = implode('\/', explode('/', $url));
     $url = "/^$url(.)*\/$/"; 
   
-    if(isset($this->routes[$url])){
-      return $this->routes[$url];
+    if(isset(Router::$routes[$url])){
+      return Router::$routes[$url];
     }
     
     return null;
@@ -106,13 +66,13 @@ class Router{
    * @throws KnownException
    * @return null
    */
-  public function route($routes){
+  public static function route($routes){
     foreach($routes as $url => $controller){
       //always end routing url with '/'
       if(substr($url, -1, 1) != '/')
         $url .= '/';
       $exp = explode('/', $url);
-      $regex = $this->domain;
+      $regex = Router::$domain;
       $first = true;
       $count =0;
       $params = [];
@@ -142,8 +102,8 @@ class Router{
         throw new KnownException("Invalid object registered as controller", ERR_BAD_ROUTE);
       
       
-      $controller->_setParams($params);
-      $this->routes[$regex] = $controller;
+      Request::getInstance()->_setParams($params);
+      Router::$routes[$regex] = $controller;
     }
   }
 }

@@ -22,8 +22,20 @@ class DbManager{
   //TODO add back-ticks to all column names in query strings
   /// this maybe changed in future iterations to allow multiple db connections
   private static $pdo = null;
+  private static $INSTANCE = null; 
 
-  public function __construct($dsn, $dbhost, $dbname, $dbuser, $dbpass, $port=3306){
+  public static function getInstance(){
+    return DbManager::$INSTANCE;
+  }
+
+  public static function newInstance($dsn, $dbhost, $dbname, $dbuser, $dbpass, $port=3306){
+    if(DbManager::$INSTANCE == null){
+      DbManager::$INSTANCE = new DbManager($dsn, $dbhost, $dbname, $dbuser, $dbpass);
+    }
+    return DbManager::$INSTANCE;
+  }
+
+  private function __construct($dsn, $dbhost, $dbname, $dbuser, $dbpass){
     if($this::$pdo == null){
       try{
         $this::$pdo = new PDO("$dsn:dbname=$dbname;host=$dbhost;port=$port", $dbuser, $dbpass);
@@ -41,8 +53,8 @@ class DbManager{
    *
    * @return PDOConnection
    */
-  public static function getPdo(){
-    return DbManager::$pdo;
+  public function getPdo(){
+    return $this->pdo;
   }
 
 

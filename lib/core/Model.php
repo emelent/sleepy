@@ -211,7 +211,7 @@ final class Models{
     $meta = getMeta($modelName);
     //Models::assertKeys($meta->getAttributeKeys(), $data, 'createStrict');
     $stmnt = $meta->getInsertStrictStatement();
-    var_dump($data);
+    //var_dump($data);
     echo $stmnt->queryString . PHP_EOL;
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();

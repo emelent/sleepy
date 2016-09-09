@@ -2,52 +2,37 @@
 
 class UserController extends RoutedController{
 
-  public function post_login($app, $args){
+  public function post_login($request, $args){
+    //TODO implement with OAuth2
+  }
+
+  public function get_logout($request, $args){
+    //TODO implement with OAuth2
+  }
+
+  public function post_create($request, $args){
     $this->assertArrayKeysSet(['email', 'password'], $_POST);
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $pass = $app->hashPassword($_POST['password']);
-    $app->authenticateEmailPass($email, $password);
+    $pass = Auth::hashPassword($_POST['password']);
+    return Response::success();
   }
 
-  public function get_logout($app, $args){
-    $app->authorise();
-    $app->deauthenticateKey();
-    $app->success(null);
+  public function delete_delete($request, $args){
+    //TODO implement
+    return Response::success();
   }
 
-  public function post_create($app, $args){
-    $this->assertArrayKeysSet(['email', 'password'], $_POST);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $pass = $app->hashPassword($_POST['password']);
-    $app->createUserValidated($email, $pass);
+  public function all_info($request, $arg){
+    return Response::success();
   }
 
-  public function delete_delete($app, $args){
-    $app->authorise();
-    $user = Models::fetchById('User', $app->getAuth()->user_id);
-    if($user == null){
-      $app->fail("Not logged in");
-    }else{
-      $user->delete();
-      $app->success(null);
-    }
-  }
-
-  public function all_info($app, $arg){
-    $app->authorise();
-    $app->success(Models::fetchById('User', $app->getAuth()->user_id));
-  }
-
-  public function index($app, $arg){
-    $app->success("Yea baby");
+  public function index($request, $arg){
+    return Response::success("Nothing here");
   }
 }
 
 class AuthController extends RoutedController{
 
-  public function post_deauthenticate($app, $args){
-    $app->authorise();
-    $app->deauthenticateKeys();
-    $app->success(null);
+  public function post_deauthenticate($request, $args){
   }
 }

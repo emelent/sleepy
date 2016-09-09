@@ -24,7 +24,7 @@ abstract class Controller{
     $methods = ['delete', 'get', 'post', 'put'];
     foreach($methods as $method){
       $this->$method = function($args){
-        $args[0]->success(null);
+        return Response::success();
       };
     }
   }
@@ -115,7 +115,7 @@ class _InjectController extends Controller{
     $methods = ['delete', 'get', 'post', 'put'];
     foreach($methods as $method){
       $this->$method = function($args) use (&$callback){
-        $callback($args[0]);
+        return $callback($args[0]);
       };
     }
    
@@ -142,15 +142,8 @@ class _InjectController extends Controller{
  */
 abstract class RoutedController extends Controller{
 
-  //TODO polish this up, remove these constant strings and replace them with
-  //glob vars
-  protected function failIfRequestNotIn($app, $methods){
-    if(!in_array($_SERVER['REQUEST_METHOD'], $methods)){
-      $app->fail("Invalid request method");
-    }
-  }
 
-  public function index($app, $args){
-    $app->success();
+  public function index($request, $args){
+    return Response::success();
   }
 }
