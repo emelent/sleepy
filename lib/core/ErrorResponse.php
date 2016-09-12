@@ -30,10 +30,11 @@ class ErrorResponse{
               ERR_BAD_ROUTE => "The page you are looking for does not exist"
   );
 
-  private static function getMessage($errorCode){
-    $msg = ErrorResponse::$PRODUCTION_ERROR_MESSAGES[$errorCode];
+  private static function getMessage($exception, $code){
+    $msg = ErrorResponse::$PRODUCTION_ERROR_MESSAGES[$code];
     if(DEBUG){
-      $msg = ErrorResponse::$DEBUG_ERROR_MESSAGES[$errorCode];
+      $msg = '[' . ErrorResponse::$DEBUG_ERROR_MESSAGES[$code] 
+        . "] {$exception->getMessage()}";
     }
     return $msg;
   }
@@ -41,14 +42,14 @@ class ErrorResponse{
   public static function resolveKnownException($exception){
     //TODO make this a proper HTTP response code
     $status = 400;
-    $msg = ErrorResponse::getMessage($exception->getCode());
+    $msg = ErrorResponse::getMessage($exception, $exception->getCode());
     Response::fail($msg, $status)->unwrap();
   }
 
   public static function resolveUnknownException($exception){
     //TODO make this a proper HTTP response code
     $status = 400; 
-    $msg = ErrorResponse::getMessage(ERR_UNEXPECTED);
+    $msg = ErrorResponse::getMessage($exception, ERR_UNEXPECTED);
     Response::fail($msg, $status)->unwrap();
   }
 }
