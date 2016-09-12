@@ -4,6 +4,7 @@ session_start();
 
 class App{
 
+  private static $pdo = null;
   /*
    * Delegates the request to the appropriate Controller
    *
@@ -39,8 +40,9 @@ class App{
 
   private static function runControllerMethod($request, $controller){
 
+    $url = $request->getUrl();
     if($controller instanceof RoutedController){
-      $args = explode('/', substr($request->getUrl(), 0, strlen($request->getUrl()) -1));
+      $args = explode('/', substr($url, 0, strlen($url) -1));
       $args = array_reverse($args);
       array_pop($args);
       $args = array_reverse($args);
@@ -61,7 +63,22 @@ class App{
       }
     }
     $method = strtolower($request->getRequestMethod()); 
+
     return $controller->$method($request);
-    
+  }
+
+  public static function getPdo(){
+    if(App::$pdo == null){
+      $dsn = DSN;
+      $dbname = DB_NAME; 
+      $dbhost = DB_HOST; 
+      $dbuser = DB_USER; 
+      $dbpass = DB_PASS; 
+      $pdo = new PDO("$dsn:dbname=$dbname;host=$dbhost;", $dbuser, $dbpass);
+      if(DEBUG) 
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+      App::$pdo = $pdo;
+    }
+    return App::$pdo;
   }
 }
