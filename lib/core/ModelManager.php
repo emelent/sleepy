@@ -31,7 +31,7 @@ final class ModelManager{
     //TODO maybe you can speed things up by doing it in one query
     //but for now I do it separately for easier error handling
     foreach(ModelManager::$models as $model){
-      echo "Creating `$model` table\n";
+      //echo "Creating `$model` table\n";
       App::getPdo()->query(getMeta($model)->getSqlSchema()); 
     }
   }
