@@ -55,4 +55,3 @@ class ActivationCode extends Model{}
 //register models
 ModelManager::register('User');
 ModelManager::register('ActivationCode');
-//ModelManager::register('Auth');
