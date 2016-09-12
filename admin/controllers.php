@@ -83,7 +83,6 @@ class UserController extends RoutedController{
 
   public function index($request, $arg){
     $user = Auth::currentUser();
-    //return Response::success($user->toJSON());
     return Response::success($user);
   }
 }
@@ -92,10 +91,6 @@ class AuthController extends RoutedController{
 
   public function post_token($request, $args){
     return Auth::requestToken();
-  }
-
-  public function get_revoke($request, $args){
-    return Auth::revokeToken();
   }
 
   public function post_revoke($request, $args){
