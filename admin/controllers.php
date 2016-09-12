@@ -22,12 +22,49 @@ class UserController extends RoutedController{
       'username' => $email
     ]);
     $user->save();
-    return Response::success();
+    //create new activation code
+    $activation = new ActivationCode([
+      'user_id' => $user->getId(),
+      'expires' => date("Y-m-d H:i:s", strtotime("+7 day")),
+      'code'    => hash('sha256', uniqid('c0d3', true))
+    ]);
+    //TODO send activation code via email
+    //mail(...);
+    return Response::success("Account successfully created.");
   }
 
-  public function delete_delete($request, $args){
+  public function post_delete($request, $args){
     //TODO implement
-    return Response::success();
+    $user = Auth::currentUser();
+    Auth::revokeToken();
+    $user->delete();
+    return Response::success("Account successfully deleted.");
+  }
+
+  public function post_update($request, $args){
+    $user = Auth::currentUser();
+    if(isset($_POST['password'])){
+      $user->setPassword($_POST['password']);
+    }
+
+    if(isset($_POST['username']))
+      $user->setUsername($_POST['username']);
+
+    if(isset($_POST['email']))
+      $user->setEmail($_POST['email']);
+
+    if(isset($_POST['first_name']))
+      $user->setFirstName($_POST['']);
+
+    if(isset($_POST['last_name']))
+      $user->setLastName($_POST['last_name']);
+  }
+
+  public function post_activate($request, $args){
+    if(count($args) < 1){
+      //TODO put a proper http response code
+      return Response::fail("Invalid url");
+    }
   }
 
   public function index($request, $arg){
