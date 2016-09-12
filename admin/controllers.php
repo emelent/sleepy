@@ -49,17 +49,24 @@ class UserController extends RoutedController{
       $user->setPassword($_POST['password']);
     }
 
-    if(isset($_POST['username']))
+    //TODO because token relies on username, changing username requires
+    //a token to be revoked, set this up so OAuth storage uses the user model's
+    //id instead
+    if(isset($_POST['username'])){
       $user->setUsername($_POST['username']);
+      Auth::revokeToken();
+    }
 
     if(isset($_POST['email']))
       $user->setEmail($_POST['email']);
 
     if(isset($_POST['first_name']))
-      $user->setFirstName($_POST['']);
+      $user->setFirstName($_POST['first_name']);
 
     if(isset($_POST['last_name']))
       $user->setLastName($_POST['last_name']);
+    $user->save();
+    return Response::success($user);
   }
 
   public function get_activate($request, $args){
