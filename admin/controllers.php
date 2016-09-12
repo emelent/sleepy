@@ -23,11 +23,13 @@ class UserController extends RoutedController{
     ]);
     $user->save();
     //create new activation code
-    $activation = new ActivationCode([
+    $code = new ActivationCode([
       'user_id' => $user->getId(),
       'expires' => date("Y-m-d H:i:s", strtotime("+7 day")),
       'code'    => hash('sha256', uniqid('c0d3', true))
     ]);
+    $code->save();
+
     //TODO send activation code via email
     //mail(...);
     return Response::success("Account successfully created.");
@@ -60,11 +62,23 @@ class UserController extends RoutedController{
       $user->setLastName($_POST['last_name']);
   }
 
-  public function post_activate($request, $args){
-    if(count($args) < 1){
+  public function get_activate($request, $args){
+    if(count($args) < 2){
       //TODO put a proper http response code
-      return Response::fail("Invalid url");
+      return Response::fail("Incomplete request");
     }
+    $code = Models::fetchSingle('ActivationCode', ['code' => $args[1]]);
+    if($code == null){
+      return Response::fail("Invalid or used activation code.");
+    }
+    $user = Models::fetchById('User', $code->getUserId());
+    if($user == null){
+      return Response::fail("Invalid activation code.");
+    }
+    $user->setActivated(true);
+    $user->save();
+    $code->delete();
+    return Response::success("Account successfully activated.");
   }
 
   public function index($request, $arg){
