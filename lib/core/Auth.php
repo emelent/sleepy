@@ -94,10 +94,6 @@ class Auth{
     return password_verify($password, $hash);
   }
 
-  //public static function requireAuthentication(){
-    ////TODO use oauth to allow access to resource
-  //}
-
   public static function requireUserGroup($group){
     //TODO require user to be of certain group.. maybe this can
     //be done with oauth
@@ -105,13 +101,6 @@ class Auth{
     if($user->group < $group){
       //TODO throw exception restricted access
     }
-  }
-
-  public static function getAuth(){
-    //if(Auth::$auth == null){
-      //TODO get auth model from db
-    //}
-    return Auth::$auth;
   }
 
   public static function currentUser(){
