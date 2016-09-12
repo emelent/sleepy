@@ -360,15 +360,15 @@ abstract class Model implements JsonSerializable {
     //TODO figure out how to make dynamic methods not get picked up by
     //json_encode
     foreach($this->meta->getAttributeKeys() as $attr_name){
-      $this->{"set" . ucfirst($attr_name)} = function ($args) use ($attr_name) {
+      $this->{"set" . ucfirst(snakeToCamel($attr_name))} = function ($args) use ($attr_name) {
           $this->$attr_name = $args[0];
       };
 
-      $this->{"get" . ucfirst($attr_name)} = function () use ($attr_name) {
+      $this->{"get" . ucfirst(snakeToCamel($attr_name))} = function () use ($attr_name) {
           return $this->$attr_name;
       };
     }
-    $this->getID = function () use ($attr_name) {
+    $this->getId = function () use ($attr_name) {
         return $this->$attr_name;
     };
   }
