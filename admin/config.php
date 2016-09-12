@@ -74,7 +74,6 @@ $CORE = [
   'Auth',
   'Controller',
   'CustomStorage',
-  'DbManager',
   'ErrorResponse',
   'Model',
   'ModelManager',
