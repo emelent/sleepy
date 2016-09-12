@@ -331,18 +331,26 @@ abstract class Model implements JsonSerializable {
     if($data != null){
       foreach($this->meta->getAttributeKeys() as $attr_name){
         if(isset($data[$attr_name])){
-          $this->{"set" . ucfirst($attr_name)}($data[$attr_name]);
+          $this->{"set" . $this->getAttributeMethodName($attr_name)}($data[$attr_name]);
         }
       }
     }
   }
 
+  private function getAttributeMethodName($attr){
+    return ucfirst(snakeToCamel($attr));
+  }
+
   public function jsonSerialize(){
     $data = ['id'=> $this->id];
     foreach($this->getMeta()->getSafeAttributesKeys() as $key){
-      $data[$key] = $this->{"get" . ucfirst($key)}();
+      $data[$key] = $this->{"get" . $this->getAttributeMethodName($key)}();
     }
     return $data;
+  }
+
+  public function getId(){
+    return $this->id;
   }
 
   public final function __call($method, $args){
@@ -357,20 +365,15 @@ abstract class Model implements JsonSerializable {
   }
   
   private function createGettersAndSetters(){
-    //TODO figure out how to make dynamic methods not get picked up by
-    //json_encode
     foreach($this->meta->getAttributeKeys() as $attr_name){
-      $this->{"set" . ucfirst(snakeToCamel($attr_name))} = function ($args) use ($attr_name) {
+      $this->{"set" . $this->getAttributeMethodName($attr_name)} = function ($args) use ($attr_name) {
           $this->$attr_name = $args[0];
       };
 
-      $this->{"get" . ucfirst(snakeToCamel($attr_name))} = function () use ($attr_name) {
+      $this->{"get" . $this->getAttributeMethodName($attr_name)} = function () use ($attr_name) {
           return $this->$attr_name;
       };
     }
-    $this->getId = function () use ($attr_name) {
-        return $this->$attr_name;
-    };
   }
 
   private function allAttributesSet(){
