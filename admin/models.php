@@ -2,23 +2,27 @@
 
 //USER META
 class UserMeta extends ModelMeta{
+  protected $hidden_attr = ['password'];
+
   public function __construct(){
     parent::__construct('users', [
-      'created' => new DateTimeField(['default'=> 'CURRENT_TIMESTAMP']),
       'email'  => new CharField(40, ['unique' => true]),
-      'password' => new CharField(64),
-      'validated' => new BooleanField(['default'=>false]),
-      'group' => new IntegerField(['default'=> 1])
+      'username' => new CharField(255, ['unique' => true]),
+      'password' => new CharField(255),
+      'created' => new DateTimeField(['default'=> 'CURRENT_TIMESTAMP']),
+      'validated' => new BooleanField(['default'=> 'FALSE']),
+      'group' => new IntegerField(['default'=> 1]),
+      'first_name' => new CharField(255, ['null'=>true]),  
+      'last_name' => new CharField(255, ['null'=>true]),  
     ]); 
   }
 }
 
 //USER MODEL
 class User extends Model{
+
   public function setPassword($pass){
-    //$this->password = App::getInstance()->hashPassword($pass);
-    //TODO hash password
-     
+    $this->password = Auth::hashPassword($pass);
   }
 }
 
