@@ -6,7 +6,7 @@ Router::route([
 
   'migrate/' => function($request){
     //TODO remove this after adding proper migration script
-    echo ModelManager::getSqlSchema() . "\n";
+    //echo ModelManager::getSqlSchema() . "\n";
     ModelManager::recreateTables();
     App::getPdo()->query("
       DROP TABLE oauth_clients;
