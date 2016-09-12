@@ -2,20 +2,8 @@
 
 require_once 'ModelFieldTypes.php';
 
-class MetaFactory{
-
-  private static $metas  = [];
-
-  public static function getMeta($metaName){
-    if(!isset(MetaFactory::$metas[$metaName])){
-      MetaFactory::$metas[$metaName] = new $metaName();
-    }
-    return MetaFactory::$metas[$metaName];
-  }
-}
-
 function getMeta($modelName){
-  return MetaFactory::getMeta($modelName . 'Meta');
+  return ModelManager::getMeta($modelName . 'Meta');
 }
 
 abstract class ModelMeta{
@@ -25,6 +13,7 @@ abstract class ModelMeta{
   private $tableName; 
   private $modelName;
   private $attr_define;
+  protected $hidden_attr = [];
 
   private $insertStatement;
   private $insertStrictStatement;
@@ -40,7 +29,7 @@ abstract class ModelMeta{
 
   public function __construct($tableName, $attr_define){
     if(ModelMeta::$pdo == null)
-      ModelMeta::$pdo = App::getInstance()->getDbManager()->getPdo();
+      ModelMeta::$pdo = App::getPdo();
     if(count($this->attr_define)){
         throw new KnownException('ModelMeta created without any attributes', ERR_UNEXPECTED);
     }
@@ -50,6 +39,14 @@ abstract class ModelMeta{
     $this->prepareStatements();
   }
   
+  public function getSafeAttributesKeys(){
+    return array_diff($this->getAttributeKeys(), $this->hidden_attr);
+  }
+
+  public function getHiddenAttributeKeys(){
+    return $this->hidden_attr;
+  }
+
   private function prepareStatements(){
     $tn = $this->tableName;
     $pdo = $this->getPdo();
@@ -70,7 +67,7 @@ abstract class ModelMeta{
     $comma_delim = ', ';
     $len_comma_delim = strlen($comma_delim);
 
-    foreach($this->getAttributeKeysWithoutDefaults() as $key){
+    foreach($this->getAttributeKeysWithoutDefaultsAndNullables() as $key){
       $insert_str .= ":$key$comma_delim";
       $insert_col_str .= "`$key`$comma_delim";
     }
@@ -184,6 +181,9 @@ abstract class ModelMeta{
     }
     return $keys;
   }
+  public function getAttributeKeysWithoutDefaultsAndNullables(){
+    return array_diff($this->getAttributeKeysWithoutDefaults(), $this->getNullableAttributeKeys());
+  }
 
   public function getNullableAttributeKeys(){
     $keys = [];
@@ -212,7 +212,7 @@ final class Models{
     //Models::assertKeys($meta->getAttributeKeys(), $data, 'createStrict');
     $stmnt = $meta->getInsertStrictStatement();
     //var_dump($data);
-    echo $stmnt->queryString . PHP_EOL;
+    //echo $stmnt->queryString . PHP_EOL;
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
     return Models::fetchById($modelName, $id);
@@ -237,13 +237,13 @@ final class Models{
 
     //set nullables and defaults to null so they are not considered
     //add nullables if they are not present and set them to null
-    $keys = $meta->getAttributeKeysWithoutDefaults();
+    $keys = $meta->getAttributeKeysWithoutDefaultsAndNullables();
     Models::nullifyExcess($keys, $data);
     Models::assertKeys($keys, $data, 'create');
 
     //TODO remove excess key value pairs, to prevent PDO errors, not sure if 
     $stmnt = $meta->getInsertStatement();
-    echo $stmnt->queryString . PHP_EOL;
+    //echo $stmnt->queryString . PHP_EOL;
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
 
@@ -316,7 +316,7 @@ final class Models{
   }
 }
 
-abstract class Model{
+abstract class Model implements JsonSerializable {
 
   protected $className;
   protected $meta;
@@ -329,13 +329,20 @@ abstract class Model{
 
     //set values
     if($data != null){
-      $keys = $this->meta->getAttributeKeys();
-      foreach($keys as $key){
-        if(isset($data[$key])){
-          $this->$key = $data[$key];
+      foreach($this->meta->getAttributeKeys() as $attr_name){
+        if(isset($data[$attr_name])){
+          $this->{"set" . ucfirst($attr_name)}($data[$attr_name]);
         }
       }
     }
+  }
+
+  public function jsonSerialize(){
+    $data = ['id'=> $this->id];
+    foreach($this->getMeta()->getSafeAttributesKeys() as $key){
+      $data[$key] = $this->{"get" . ucfirst($key)}();
+    }
+    return $data;
   }
 
   public final function __call($method, $args){
@@ -361,6 +368,9 @@ abstract class Model{
           return $this->$attr_name;
       };
     }
+    $this->getID = function () use ($attr_name) {
+        return $this->$attr_name;
+    };
   }
 
   private function allAttributesSet(){
@@ -377,7 +387,7 @@ abstract class Model{
       Models::update($this->className, $this->toArray());
     }else{
       if($this->allAttributesSet()){
-        echo "using strict\n";
+        //echo "using strict\n";
         $obj = Models::createStrict($this->className, $this->toArrayNoId());
       }else{
         $obj = Models::create($this->className, $this->toArrayNoId());
