@@ -43,7 +43,30 @@ class UserController extends RoutedController{
     return Response::success("Account successfully deleted.");
   }
 
+  public function get_emailAvailable($request, $args){
+    if(count($args) < 2){
+      //TODO put a proper http response code
+      return Response::fail("No email address sent.");
+    }
+    $email = filter_var($args[1], FILTER_SANITIZE_EMAIL);
+    if(Models::fetchSingle('User', ['email'=> $email]))
+      return Response::fail("Email already in use.");
+    return Response::success("Email available.");
+  }
+
+  public function get_usernameAvailable($request, $args){
+    if(count($args) < 2){
+      //TODO put a proper http response code
+      return Response::fail("No username sent.");
+    }
+    $username = filter_var($args[1], FILTER_SANITIZE_EMAIL);
+    if(Models::fetchSingle('User', ['username'=> $username]))
+      return Response::fail("Username already in use.");
+    return Response::success("Username available.");
+  }
+
   public function post_update($request, $args){
+    //TODO sanitize inputs
     $user = Auth::currentUser();
     if(isset($_POST['password'])){
       $user->setPassword($_POST['password']);
@@ -72,7 +95,7 @@ class UserController extends RoutedController{
   public function get_activate($request, $args){
     if(count($args) < 2){
       //TODO put a proper http response code
-      return Response::fail("Incomplete request");
+      return Response::fail("No activation code sent.");
     }
     $code = Models::fetchSingle('ActivationCode', ['code' => $args[1]]);
     if($code == null){
