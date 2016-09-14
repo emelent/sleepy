@@ -19,7 +19,22 @@ class GlobMeta extends ModelMeta{
 }
 class Glob extends Model {}
 
+class ThingMeta extends ModelMeta{
+  public function __construct(){
+    parent::__construct('things', [
+      'name'  => new CharField(200),
+      'owner_id' => new ForeignKey('globs')
+    ]);
+  }
+}
+
+class Thing extends Model{}
+
 ModelManager::register('Glob');
+ModelManager::register('Thing');
+
+echo ModelManager::getSqlSchema() . PHP_EOL;
+
 ModelManager::recreateTables();
 $glob = new Glob(['name'=>'Marcus', 'age'=> 5, 'bio'=>'This is the bio']);
 $glob->save();
