@@ -108,8 +108,7 @@ abstract class ModelMeta{
      . "$indent`id` INT PRIMARY KEY AUTO_INCREMENT,\n" 
       ;
     foreach($this->attr_define as $key => $value){
-      $parent = get_parent_class($value);
-      if ($parent == 'BaseFieldType'){
+      if ($value instanceof BaseFieldType){
        $sqlSchema .= "$indent`$key` $value,\n"; 
       }else{
         throw new KnownException('Invalid ModelMeta DataType', ERR_UNEXPECTED);
