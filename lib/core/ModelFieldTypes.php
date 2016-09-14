@@ -3,7 +3,7 @@
 //require_once 'Config.php';
 
 
-class BaseFieldType
+abstract class BaseFieldType
 {
     protected $stringValue = '';
     protected $null = false;
@@ -144,4 +144,31 @@ class DateTimeField extends BaseFieldType
         return parent::__toString();
     }
 }
+
+abstract class BaseDbRel extends BaseFieldType{
+  protected $relatedTable;
+
+  public function __construct($relatedTable, $assoc = []){
+    $this->relatedTable = $relatedTable;
+    //set the properties according to provided assoc array
+    foreach ($assoc as $property => $value) {
+      if (isset($this->{$property})) {
+        $this->{$property} = $value;
+      }        
+    }
+  }
+
+  //creates a string that is used to define sql column-type
+  public function __toString()
+  {
+      $this->stringValue = 'INT';
+      $this->stringValue .= ($this->default) ? " DEFAULT $this->default" : '';
+      $this->stringValue .= ($this->null) ? '':' NOT NULL';
+      $this->stringValue .= ($this->unique) ? ' UNIQUE': '';
+      $this->stringValue .= " REFERENCES {$this->relatedTable}(id)";
+      return $this->stringValue;
+  }
+}
+
+class ForeignKey extends BaseDbRel{}
 
