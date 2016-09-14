@@ -4,8 +4,12 @@ class UserController extends RoutedController{
 
   public function post_create($request, $args){
     $this->assertArrayKeysSet(['email', 'password'], $_POST);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $email = strtolower($_POST['email']);
     $pass = $_POST['password'];
+
+    if(!validateEmail($email)){
+      return Response::fail("Invalid email address.");
+    }
 
     //prevent duplicate email entries, this is already done by our DDL in
     //the User model's meta class, but to prevent from getting nasty SQL Db
@@ -19,7 +23,7 @@ class UserController extends RoutedController{
     $user = new User([
       'email' => $email,
       'password' => $pass,
-      'username' => $email
+      'username' => str_replace('.', '_', str_replace('@', '_',$email))
     ]);
     $user->save();
     //create new activation code
@@ -48,7 +52,10 @@ class UserController extends RoutedController{
       //TODO put a proper http response code
       return Response::fail("No email address sent.");
     }
-    $email = filter_var($args[1], FILTER_SANITIZE_EMAIL);
+    $email = $args[1];
+    if(!validateEmail($email)){
+      return Response::fail("Invalid email address.");
+    }
     if(Models::fetchSingle('User', ['email'=> $email]))
       return Response::fail("Email already in use.");
     return Response::success("Email available.");
@@ -59,7 +66,10 @@ class UserController extends RoutedController{
       //TODO put a proper http response code
       return Response::fail("No username sent.");
     }
-    $username = filter_var($args[1], FILTER_SANITIZE_EMAIL);
+    $username = $args[1];
+    if(!validateUsername($username)){
+      return Response::fail("Invalid username.");
+    }
     if(Models::fetchSingle('User', ['username'=> $username]))
       return Response::fail("Username already in use.");
     return Response::success("Username available.");
@@ -76,18 +86,33 @@ class UserController extends RoutedController{
     //a token to be revoked, set this up so OAuth storage uses the user model's
     //id instead
     if(isset($_POST['username'])){
-      $user->setUsername($_POST['username']);
+      if(!validateUsername($_POST['username'])){
+        return Response::fail("Invalid username.");
+      }
+      $user->setUsername(strtolower($_POST['username']));
       Auth::revokeToken();
     }
 
-    if(isset($_POST['email']))
+    if(isset($_POST['email'])){
+      if(!validateEmail($_POST['email'])){
+        return Response::fail("Invalid email address.");
+      }
       $user->setEmail($_POST['email']);
+    }
 
-    if(isset($_POST['first_name']))
+    if(isset($_POST['first_name'])){
+      if(!validateEmail($_POST['first_name'])){
+        return Response::fail("Invalid first name.");
+      }
       $user->setFirstName($_POST['first_name']);
+    }
 
-    if(isset($_POST['last_name']))
+    if(isset($_POST['last_name'])){
+      if(!validateEmail($_POST['last_name'])){
+        return Response::fail("Invalid last name.");
+      }
       $user->setLastName($_POST['last_name']);
+    }
     $user->save();
     return Response::success($user);
   }
