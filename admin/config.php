@@ -23,10 +23,6 @@ define('ROOT_DIR', implode('/', $temp) . '/');
 define('LIB_DIR', ROOT_DIR . 'lib/');
 define('HOME_URL', 'http://localhost/api2/');
 
-
-define('GUEST_KEY', 'GUEST');
-define('API_KEY', 'API_KEY');
-
 /* Error codes */
 define('ERR_UNK_REQ', 0);  //unknown request method
 define('ERR_BAD_REQ',  1); //invalid data
