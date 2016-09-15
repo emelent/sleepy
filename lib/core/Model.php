@@ -287,6 +287,25 @@ final class Models{
     return $stmnt->fetchAll();
   }
 
+  private static function createCustomStatement($query){
+    $pdo = getMeta($modelName)->getPdo();
+    $stmnt = $pdo->prepare($query);
+    $stmnt->setFetchMode(PDO::FETCH_CLASS, $modelName);
+    return $stmnt;
+  }
+
+  public static function fetchAllCustom($modelName, $query, $data){
+    $stmnt = Models::createCustomStatement($query);
+    $stmnt-execute($data);
+    return $stmnt->fetchAll();
+  }
+
+  public static function fetchSingleCustom($modelName, $query, $data){
+    $stmnt = Models::createCustomStatement($query);
+    $stmnt-execute($data);
+    return $stmnt->fetch();
+  }
+
   public static function fetchById($modelName, $id){
     $meta = getMeta($modelName);
     $stmnt = $meta->getSelectStatement();
