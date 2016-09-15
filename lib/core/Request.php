@@ -88,7 +88,9 @@ class Request{
       $uri = substr($_SERVER['REQUEST_URI'], strlen($basepath));
       if (strstr($uri, '?')) 
         $uri = substr($uri, 0, strpos($uri, '?'));
-      $this->url = '/' . trim($uri, '/');
+      if(substr($uri, -1) != '/')
+        $uri .= '/';
+      $this->url = $uri;
     }
     return $this->url;
   }
