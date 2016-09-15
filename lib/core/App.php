@@ -15,16 +15,26 @@ class App{
    */
 
   public static function serve($request){
-    if(!isset($_SERVER['REQUEST_METHOD'])){
-      throw new KnownException('No request was made to the server', ERR_BAD_REQ);
+    try{
+      if(!isset($_SERVER['REQUEST_METHOD'])){
+        throw new KnownException('No request was made to the server', ERR_BAD_REQ);
+      }
+      $method = strtolower($_SERVER['REQUEST_METHOD']);
+      $url = $request->getUrl();
+      $controller = Router::getController($url);
+      if($controller == null){
+        throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
+      }
+      App::runControllerMethod($request, $controller)->unwrap();
     }
-    $method = strtolower($_SERVER['REQUEST_METHOD']);
-    $url = $request->getUrl();
-    $controller = Router::getController($url);
-    if($controller == null){
-      throw new KnownException("No controller for route '$url'", ERR_BAD_ROUTE);
+    catch(KnownException $exception){
+      //Catch Known Exceptions
+      ErrorResponse::resolveKnownException($exception);
     }
-    App::runControllerMethod($request, $controller)->unwrap();
+    catch(Exception $exception){
+      //Catch Unexpected or Unknown Exceptions
+      ErrorResponse::resolveUnknownException($exception);
+    }
   }
 
   /*
