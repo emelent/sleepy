@@ -84,15 +84,11 @@ class Request{
    */
   public function getUrl(){
     if($this->url == null){
-      $this->url  = '';
-      for($i=1; $i < 5; $i++){
-        if(isset($_GET["p$i"]))
-          $this->url .= $_GET["p$i"] . '/';
-      }
-      //resolve empty string to '/'
-      if($this->url == ''){
-        $this->url='/';
-      }
+      $basepath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+      $uri = substr($_SERVER['REQUEST_URI'], strlen($basepath));
+      if (strstr($uri, '?')) 
+        $uri = substr($uri, 0, strpos($uri, '?'));
+      $this->url = '/' . trim($uri, '/');
     }
     return $this->url;
   }
