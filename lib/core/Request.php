@@ -46,9 +46,16 @@ class Request{
 
   public function _setParams($params){
     $this->params = $params;
-    foreach($this->params as $key => $val){
-      $this->params[$key] = $_GET["p$val"];
+    $url = $this->getUrl();
+    $parts = explode('/', $url);
+    $index = 1;
+    if(count($parts) <= count($params)){
+      return;
     }
+    foreach($params as $key => $val){
+      $this->params[$key] = $parts[$index++];
+    }
+
     return $this->params;
   }
 
@@ -86,7 +93,7 @@ class Request{
     if($this->url == null){
       $basepath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
       $uri = substr($_SERVER['REQUEST_URI'], strlen($basepath));
-      if (strstr($uri, '?')) 
+      if (strstr($uri, '?'))
         $uri = substr($uri, 0, strpos($uri, '?'));
       if(substr($uri, -1) != '/')
         $uri .= '/';

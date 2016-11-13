@@ -25,9 +25,11 @@ Router::route([
     ");
     return Response::success("Migration successful");
   },
-
+  'hello/:name/:age' => function($request, $name, $age){
+    return Response::success("Hello $name $age");
+  },
   '/' => function($request){
-    return Response::success("Kshhhh. Ground control to Major Tom, we have ReST");
+    return Response::success("Kshhhh. Ground control to Major Tom, we have ReST, I repeat, we have ReST.");
   }
 ]);
 

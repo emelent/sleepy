@@ -3,11 +3,11 @@
 // ===========================================================================
 //
 //
-// This file contains the class declarations of all Controller types and 
+// This file contains the class declarations of all Controller types and
 // subtypes to be inherited by the user of the library.
 //
 // Please note that any methods or classes beginning with an underscore whether
-// public or private are not meant to be called directly by a user but are for 
+// public or private are not meant to be called directly by a user but are for
 // the inner functioning of the library as a whole.
 //
 //
@@ -18,7 +18,7 @@
  * Base Controller class from which all Controllers must inherit
  */
 abstract class Controller{
-  
+
   private $params;
   public function __construct(){
     $methods = ['delete', 'get', 'post', 'put'];
@@ -56,14 +56,14 @@ abstract class Controller{
   }
 
   /*
-   * Sets parameter values(params) for controller, params are significant 
+   * Sets parameter values(params) for controller, params are significant
    * values retreived from the request url, these can be specified with
    * ":<name>" within the routing url
    *
    * e.g. with a route "users/view/:username/"
    *      and request "users/view/Michael/"
    *      "username" would be parameter containing the value "Michael"
-   *      
+   *
    * These are useful for processing user requests
    *
    * @param $params     = Array of request parameter links, these do not
@@ -115,10 +115,19 @@ class _InjectController extends Controller{
     $methods = ['delete', 'get', 'post', 'put'];
     foreach($methods as $method){
       $this->$method = function($args) use (&$callback){
-        return $callback($args[0]);
+        $newArgs = [];
+        $index = 0;
+        foreach($args as $val){
+          if($index == 0){
+            $index++;
+            continue;
+          }
+          array_push($newArgs, $val);
+        }
+        return $callback(...$newArgs);
       };
     }
-   
+
   }
 }
 
@@ -128,7 +137,7 @@ class _InjectController extends Controller{
  *
  *    class HelloWorldController extends RoutedController{
  *      public function world($app, $args){
- *        $app->success("Hello World"); 
+ *        $app->success("Hello World");
  *      }
  *    }
  *    ...
@@ -136,14 +145,14 @@ class _InjectController extends Controller{
  *    // 'hello/'
  *    $app->route(['hello/*' => new HelloWorldController()]);
  *
- * 
- * After mapping that, access <api-route>/hello/world/ will execute 
+ *
+ * After mapping that, access <api-route>/hello/world/ will execute
  * HelloWorldController::world(...)
  */
 abstract class RoutedController extends Controller{
 
 
-  public function index($request, $args){
+  public function index($request){
     return Response::success();
   }
 }

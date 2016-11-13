@@ -41,8 +41,8 @@ class App{
    * Delegates the given request to the right controller.
    *
    * @param $url              = Url Route
-   * @param $request_method   = Request method (post, get, put, delete) 
-   * @param $controller       = Controller to be used 
+   * @param $request_method   = Request method (post, get, put, delete)
+   * @param $controller       = Controller to be used
    *
    * @throws KnownException
    * @return null
@@ -51,41 +51,42 @@ class App{
   private static function runControllerMethod($request, $controller){
 
     $url = $request->getUrl();
+    $args = explode('/', substr($url, 0, strlen($url) -1));
+    $args = array_reverse($args);
+    array_pop($args);
     if($controller instanceof RoutedController){
-      $args = explode('/', substr($url, 0, strlen($url) -1));
-      $args = array_reverse($args);
-      array_pop($args);
+      $runIndex = count($args) < 1;
+      $hint = array_pop($args);
+      $method = strtolower($request->getRequestMethod()) . "_$hint";
       $args = array_reverse($args);
       try{
-        if(count($args) < 1){
-          return $controller->index($request, $args);
+        if($runIndex){
+          return $controller->index($request);
         }else{
-          $method = strtolower($request->getRequestMethod()) . '_' . $args[0];
-          return $controller->$method($request, $args);
+          return $controller->$method($request, ...$args);
         }
       }catch(UnknownMethodCallException $e){
         try{
-          $method = 'all_' . $args[0];
-          return $controller->$method($request, $args);
+          $method = "all_$hint";
+          return $controller->$method($request, ...$args);
         }catch(UnknownMethodCallException $e){
           throw new KnownException("No controller for route or invalid request method '$url'", ERR_BAD_ROUTE);
         }
       }
     }
-    $method = strtolower($request->getRequestMethod()); 
-
-    return $controller->$method($request);
+    $method = strtolower($request->getRequestMethod());
+    return $controller->$method($request, ...$args);
   }
 
   public static function getPdo(){
     if(App::$pdo == null){
       $dsn = DSN;
-      $dbname = DB_NAME; 
-      $dbhost = DB_HOST; 
-      $dbuser = DB_USER; 
-      $dbpass = DB_PASS; 
+      $dbname = DB_NAME;
+      $dbhost = DB_HOST;
+      $dbuser = DB_USER;
+      $dbpass = DB_PASS;
       $pdo = new PDO("$dsn:dbname=$dbname;host=$dbhost;", $dbuser, $dbpass);
-      if(DEBUG) 
+      if(DEBUG)
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
       App::$pdo = $pdo;
     }

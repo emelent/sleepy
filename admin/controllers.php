@@ -2,7 +2,7 @@
 
 class UserController extends RoutedController{
 
-  public function post_create($request, $args){
+  public function post_create($request){
     $this->assertArrayKeysSet(['email', 'password'], $_POST);
     $email = strtolower($_POST['email']);
     $pass = $_POST['password'];
@@ -39,20 +39,19 @@ class UserController extends RoutedController{
     return Response::success("Account successfully created.");
   }
 
-  public function post_delete($request, $args){
-    //TODO implement
+  public function post_delete($request){
     $user = Auth::currentUser();
     Auth::revokeToken();
     $user->delete();
     return Response::success("Account successfully deleted.");
   }
 
-  public function get_emailAvailable($request, $args){
-    if(count($args) < 2){
+  public function get_emailAvailable($request, $email){
+    if(!isset($email)){
       //TODO put a proper http response code
       return Response::fail("No email address sent.");
     }
-    $email = $args[1];
+
     if(!validateEmail($email)){
       return Response::fail("Invalid email address.");
     }
@@ -61,12 +60,12 @@ class UserController extends RoutedController{
     return Response::success("Email available.");
   }
 
-  public function get_usernameAvailable($request, $args){
-    if(count($args) < 2){
+  public function get_usernameAvailable($request, $username){
+    if(!isset($username)){
       //TODO put a proper http response code
       return Response::fail("No username sent.");
     }
-    $username = $args[1];
+
     if(!validateUsername($username)){
       return Response::fail("Invalid username.");
     }
@@ -75,7 +74,7 @@ class UserController extends RoutedController{
     return Response::success("Username available.");
   }
 
-  public function post_update($request, $args){
+  public function post_update($request){
     //TODO sanitize inputs
     $user = Auth::currentUser();
     if(isset($_POST['password'])){
@@ -117,16 +116,18 @@ class UserController extends RoutedController{
     return Response::success($user);
   }
 
-  public function get_activate($request, $args){
-    if(count($args) < 2){
+  public function get_activate($request, $code){
+    $user = Auth::currentUser();
+    if(!isset($code)){
       //TODO put a proper http response code
       return Response::fail("No activation code sent.");
     }
-    $code = Models::fetchSingle('ActivationCode', ['code' => $args[1]]);
+    
+    $code = Models::fetchSingle('ActivationCode', ['code' => $code]);
     if($code == null){
       return Response::fail("Invalid or used activation code.");
     }
-    $user = Models::fetchById('User', $code->getUserId());
+    //TODO check if code has expired
     if($user == null){
       return Response::fail("Invalid activation code.");
     }
@@ -136,7 +137,7 @@ class UserController extends RoutedController{
     return Response::success("Account successfully activated.");
   }
 
-  public function index($request, $arg){
+  public function index($request){
     $user = Auth::currentUser();
     return Response::success($user);
   }
@@ -144,11 +145,11 @@ class UserController extends RoutedController{
 
 class AuthController extends RoutedController{
 
-  public function post_token($request, $args){
+  public function post_token($request){
     return Auth::requestToken();
   }
 
-  public function post_revoke($request, $args){
+  public function all_revoke($request){
     return Auth::revokeToken();
   }
 }
