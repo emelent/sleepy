@@ -146,6 +146,8 @@ class UserController extends RoutedController{
 class AuthController extends RoutedController{
 
   public function post_token($request){
+    $_POST['client_id'] = CLIENT_ID;
+    $_POST['client_secret'] = CLIENT_SECRET;
     return Auth::requestToken();
   }
 
