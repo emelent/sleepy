@@ -75,6 +75,7 @@ class App{
       }
     }
     $method = strtolower($request->getRequestMethod());
+    $args = array_reverse($args);
     return $controller->$method($request, ...$args);
   }
 
