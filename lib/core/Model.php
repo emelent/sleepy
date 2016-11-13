@@ -40,7 +40,7 @@ abstract class ModelMeta{
   }
   
   public function getSafeAttributesKeys(){
-    return array_diff($this->getAttributeKeys(), $this->hidden_attr);
+    return array_merge(['id'], array_diff($this->getAttributeKeys(), $this->hidden_attr));
   }
 
   public function getHiddenAttributeKeys(){
@@ -285,6 +285,22 @@ final class Models{
     }
 
     return $stmnt->fetchAll();
+  }
+
+  public static function fetchAllSafe($modelName, $data=null){
+    $models = Models::fetchAll($modelName, $data);
+    $safe = getMeta($modelName)->getSafeAttributesKeys();
+    $safeModels = [];
+    foreach($models as $model){
+      foreach($model as $key => $value){
+        if(!in_array($key, $safe)){
+          unset($model[$key]);
+        }
+        unset($model["0"]);
+      }
+      array_push($safeModels, $model);
+    }
+    return $safeModels;
   }
 
   private static function createCustomStatement($query){
