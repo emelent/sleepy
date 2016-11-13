@@ -1,6 +1,8 @@
 TODO
 
   => Add OAuth2 support
+    
+    DONE
 
   => Re-evaluate the App class as the core of the library, consider separating
      responses, and having routing done via a singleton router class.
@@ -80,3 +82,5 @@ TODO
      return Models. That way non "select" statements wont run a "fetch" to 
      return the newly edited model or inserted model like they normally do
      with Model::create, therefore making it faster
+
+  => Review all TODO comments
