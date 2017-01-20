@@ -222,7 +222,7 @@ class _ModelController extends RoutedController{
     $newData = json_decode($_POST['set'], true);
 
     Models::updateAll($this->modelName, $newData, $oldData);
-    return Response::success('Implement Model updateAll.');
+    return Response::success($this->modelName . ' models updated.');
   }
 
   public function _find($request){
