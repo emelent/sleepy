@@ -167,7 +167,7 @@ abstract class RoutedController extends Controller{
 class _ModelController extends RoutedController{
 
   public function __construct($modelName){
-    $parent::__construct();
+    parent::__construct();
     $this->modelName = $modelName;
   }
 
