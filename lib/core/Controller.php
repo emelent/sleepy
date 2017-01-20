@@ -166,52 +166,92 @@ abstract class RoutedController extends Controller{
 
 class _ModelController extends RoutedController{
 
+  private static $READ = 'READ';
+  private static $WRITE= 'WRITE';
+
   public function __construct($modelName){
     parent::__construct();
     $this->modelName = $modelName;
     $this->meta = getMeta($this->modelName);
   }
 
+  protected function requestAccess($type){
+    $access = $this->meta->getAcl()[$type];   
+    switch($access){
+      case ModelMeta::$ALL_READ:
+      case ModelMeta::$ALL_WRITE:
+        break;
+
+      case ModelMeta::$AUTH_READ:
+      case ModelMeta::$AUTH_WRITE:
+        Auth::requireAuthorisation();
+        break;
+
+      case ModelMeta::$OWN_READ:
+      case ModelMeta::$OWN_WRITE:
+        return Auth::currentUser();
+    }
+
+    return null;
+  }
+
+  //TODO might want to comment this out on deploy
   public function index($request){
     $methName = '_index';
+    if($request->getRequestMethod())
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
     return Response::success("Yes... Tell me more about this '" . $this->modelName . "'");
   }
 
   public function _create($request){
+    $this->requestAccess($this::WRITE);
     $methName = '_create';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
     $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
     $model = Models::create($this->modelName, $data); 
-    if($model){
-      return Response::success($model);
-    }
-    return Response::fail('Failed to create model.');
+
+    return Response::success($model);
   }
 
   public function _delete($request){
+    $access = $this->requestAccess($this::WRITE);
     $methName = '_delete';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
     $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+
+    if($access != null){
+      $data['creator'] = $access->getUid();
+    }
+
     Models::delete($this->modelName, $data); 
 
     return Response::success($this->modelName . ' successfully deleted.');
   }
 
   public function _update($request){
+    $access = $this->requestAccess($this::WRITE);
     $methName = '_update';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
     $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
-    Models::update($this->modelName, $data); 
+    if($access != null){
+      $oldData = [
+        'creator' => $access->getUid(),
+        'id'  => $data['id']
+      ];
+      Models::updateAll($this->modelName, $data, $oldData); 
+    }else{
+      Models::update($this->modelName, $data); 
+    }
     
     return Response::success($this->modelName . ' successfully updated.');
   }
 
   public function _updateAll($request){
+    $access = $this->requestAccess($this::WRITE);
     $methName = '_updateAll';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -221,27 +261,35 @@ class _ModelController extends RoutedController{
     $oldData = json_decode($_POST['find'], true);
     $newData = json_decode($_POST['set'], true);
 
+    if($access != null){
+      $oldData['creator'] =$access->getUid();
+    }
     Models::updateAll($this->modelName, $newData, $oldData);
+
     return Response::success($this->modelName . ' models updated.');
   }
 
   public function _find($request){
+    $access = $this->requestAccess($this::READ);
     $methName = '_find';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
 
     $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
     $model = Models::find($this->modelName, $data); 
+
     return Response::success($model);
   }
 
   public function _findAll($request){
+    $access = $this->requestAccess($this::READ);
     $methName = '_findAll';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
 
     $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
     $models = Models::find($this->modelName, $data); 
+
     return Response::success($models);
   }
 
