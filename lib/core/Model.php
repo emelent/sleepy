@@ -260,6 +260,38 @@ final class Models{
     $stmnt->execute($data);
   }
 
+  public static function updateAll($modelName, $newData, $oldData){
+    
+    $meta = getMeta($modelName);
+    $set = '';
+    $where = '';
+    $comma_delim = ', '; 
+    $len_comma_delim = strlen($comma_delim);
+
+    foreach(array_keys($newData) as $key){
+      $set .= "`$key` = :$key$comma_delim";
+    }
+
+    foreach(array_keys($oldData) as $key){
+      $where .= "`$key` = :old_$key$comma_delim";
+      $data["old_$key"] = $oldData[$key];
+    }
+
+    //remove last ', '
+    $set = substr($set, 0, strlen($set) - $len_comma_delim);
+    $where = substr($where, 0, strlen($where) - $len_comma_delim);
+
+    $query = sprintf('UPDATE `%s` SET %s WHERE %s',
+      $meta->getTableName(), 
+      $set, 
+      $where
+    );
+    
+    $data = array_merge($data, $newData);
+    $stmnt = $meta->getPdo()->prepare($query);
+    $stmnt->execute($data);
+  }
+
   public static function find($modelName, $data=null){
     if($data == null){
       $stmnt = getMeta($modelName)->getSelectAllStatement();
