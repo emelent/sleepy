@@ -47,5 +47,14 @@ final class ModelManager{
     }
     return ModelManager::$metas[$metaName];
   }
+
+  public static function createModelRoutes(){
+    foreach(ModelManager::$models as $model){
+      Router::route([
+        "$modelName/*" => new ModelController($model)
+      ]);
+    }
+  }
+
 }
 
