@@ -169,43 +169,80 @@ class _ModelController extends RoutedController{
   public function __construct($modelName){
     parent::__construct();
     $this->modelName = $modelName;
+    $this->meta = getMeta($this->modelName);
   }
 
   public function index($request){
-    $meta = getMeta($this->modelName);
     $methName = '_index';
-    if(method_exists($meta, $methName))
-      return $meta->$methName();
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
     return Response::success("Yes... Tell me more about this '" . $this->modelName . "'");
   }
 
   public function _create($request){
-    $meta = getMeta($this->modelName);
     $methName = '_create';
-    if(method_exists($meta, $methName))
-      return $meta->$methName();
-    return Response::success('Implement Model create.');
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+    $model = Models::create($this->modelName, $data); 
+    if($model){
+      return Response::success($model);
+    }
+    return Response::fail('Failed to create model.');
   }
 
   public function _delete($request){
     $methName = '_delete';
-    if(method_exists($meta, $methName))
-      return $meta->$methName();
-    return Response::success('Implement Model delete.');
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+    Models::delete($this->modelName, $data); 
+
+    return Response::success($this->modelName . ' successfully deleted.');
   }
 
   public function _update($request){
     $methName = '_update';
-    if(method_exists($meta, $methName))
-      return $meta->$methName();
-    return Response::success('Implement Model update.');
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+    Models::update($this->modelName, $data); 
+    
+    return Response::success($this->modelName . ' successfully updated.');
+  }
+
+  public function _updateAll($request){
+    $methName = '_updateAll';
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+    if(!arrayKeysSet(['find', 'set'], $_POST)){
+      throw new KnownException("Missing params 'find' and 'set'.", ERR_INCOMP_REQ);
+    }
+    $oldData = json_decode($_POST['find'], true);
+    $newData = json_decode($_POST['set'], true);
+
+    Models::updateAll($this->modelName, $newData, $oldData);
+    return Response::success('Implement Model updateAll.');
   }
 
   public function _find($request){
     $methName = '_find';
-    if(method_exists($meta, $methName))
-      return $meta->$methName();
-    return Response::success('Implement Model find.');
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+
+    $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
+    $model = Models::find($this->modelName, $data); 
+    return Response::success($model);
+  }
+
+  public function _findAll($request){
+    $methName = '_findAll';
+    if(method_exists($this->meta, $methName))
+      return $this->meta->$methName();
+
+    $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
+    $models = Models::find($this->modelName, $data); 
+    return Response::success($models);
   }
 
 
@@ -225,11 +262,21 @@ class _ModelController extends RoutedController{
   }
 
 
-  public function post_find($request){
-    return $this->_find($request);
+  public function post_updateAll($request){
+    return $this->_updateAll($request);
   }
+  public function put_updateAll($request){
+    return $this->_update($request);
+  }
+
+
   public function get_find($request){
     return $this->_find($request);
+  }
+
+
+  public function get_findAll($request){
+    return $this->_findAll($request);
   }
 
 
