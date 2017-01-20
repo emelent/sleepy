@@ -160,7 +160,7 @@ abstract class RoutedController extends Controller{
 
 /*
  * _ModelController is a controller used to create generic default 
- * CRUD routes for all registered models.
+ * CRUD endpoints for all registered models.
  *
  */
 
