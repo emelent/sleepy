@@ -7,6 +7,18 @@ abstract class ModelMeta{
 
   private static $pdo = null;
 
+  //Constants Used in defining ACL's
+  public static $ALL_READ    = 0;
+  public static $ALL_WRITE   = 1;
+  public static $AUTH_READ   = 2;
+  public static $AUTH_WRITE  = 3;
+  public static $OWN_READ    = 4;
+  public static $OWN_WRITE   = 5;
+  protected $acl = [
+    'READ' => 0,
+    'WRITE' => 1,
+  ];
+
   private $tableName; 
   private $modelName;
   private $attr_define;
@@ -39,6 +51,10 @@ abstract class ModelMeta{
   
   public function shouldAutoRoute(){
     return $this->auto_route;
+  }
+
+  public function getAcl(){
+    return $this->acl;
   }
 
   public function getSafeAttributesKeys(){
