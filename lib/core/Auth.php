@@ -78,7 +78,8 @@ class Auth{
   private static function requireAuthorisation(){
     // Handle a request to a resource and authenticate the access token
     if (!Auth::$server->verifyResourceRequest(Auth::getOAuthRequest())) {
-      Response::fail("Not authorised.")->unwrap();
+      //Response::fail("Not authorised.")->unwrap();
+      throw new KnownException('Not authorised', ERR_UNAUTHORISED);
     }
   }
 
@@ -100,6 +101,7 @@ class Auth{
     $user = Auth::currentUser();
     if($user->group < $group){
       //TODO throw exception restricted access
+      throw new KnownException('Not authorised', ERR_UNAUTHORISED);
     }
   }
 
