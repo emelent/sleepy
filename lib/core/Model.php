@@ -353,7 +353,7 @@ final class Models{
     return $safeModels;
   }
 
-  private static function createCustomStatement($query){
+  private static function createCustomFindStatement($modelName, $query){
     $pdo = getMeta($modelName)->getPdo();
     $stmnt = $pdo->prepare($query);
     $stmnt->setFetchMode(PDO::FETCH_CLASS, $modelName);
@@ -361,13 +361,13 @@ final class Models{
   }
 
   public static function findAllCustom($modelName, $query, $data){
-    $stmnt = Models::createCustomStatement($query);
+    $stmnt = Models::createCustomFindStatement($modelName, $query);
     $stmnt-execute($data);
     return $stmnt->fetchAll();
   }
 
   public static function findCustom($modelName, $query, $data){
-    $stmnt = Models::createCustomStatement($query);
+    $stmnt = Models::createCustomFindStatement($modelName, $query);
     $stmnt-execute($data);
     return $stmnt->fetch();
   }

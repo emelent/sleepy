@@ -205,7 +205,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _create($request){
-    $this->requestAccess($this::WRITE);
+    $this->requestAccess($this::$WRITE);
     $methName = '_create';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -216,7 +216,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _delete($request){
-    $access = $this->requestAccess($this::WRITE);
+    $access = $this->requestAccess($this::$WRITE);
     $methName = '_delete';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -232,7 +232,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _update($request){
-    $access = $this->requestAccess($this::WRITE);
+    $access = $this->requestAccess($this::$WRITE);
     $methName = '_update';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -251,7 +251,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _updateAll($request){
-    $access = $this->requestAccess($this::WRITE);
+    $access = $this->requestAccess($this::$WRITE);
     $methName = '_updateAll';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -270,7 +270,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _find($request){
-    $access = $this->requestAccess($this::READ);
+    $access = $this->requestAccess($this::$READ);
     $methName = '_find';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
@@ -282,7 +282,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _findAll($request){
-    $access = $this->requestAccess($this::READ);
+    $access = $this->requestAccess($this::$READ);
     $methName = '_findAll';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
