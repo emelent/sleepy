@@ -2,9 +2,6 @@
 
 require_once 'ModelFieldTypes.php';
 
-function getMeta($modelName){
-  return ModelManager::getMeta($modelName . 'Meta');
-}
 
 abstract class ModelMeta{
 
@@ -214,7 +211,7 @@ final class Models{
     //echo $stmnt->queryString . PHP_EOL;
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
-    return Models::fetchById($modelName, $id);
+    return Models::findById($modelName, $id);
   }
 
   private static function assertKeys($keys, $data, $methodName){
@@ -246,7 +243,7 @@ final class Models{
     $stmnt->execute($data);
     $id = $meta->getPdo()->lastInsertId();
 
-    return Models::fetchById($modelName, $id);
+    return Models::findById($modelName, $id);
   }
 
   public static function delete($modelName, $data){
@@ -263,7 +260,7 @@ final class Models{
     $stmnt->execute($data);
   }
 
-  public static function fetchSingle($modelName, $data=null){
+  public static function find($modelName, $data=null){
     if($data == null){
       $stmnt = getMeta($modelName)->getSelectAllStatement();
       $stmnt->execute();
@@ -275,7 +272,7 @@ final class Models{
     return $stmnt->fetch();
   } 
 
-  public static function fetchAll($modelName, $data=null){
+  public static function findAll($modelName, $data=null){
     if($data == null){
       $stmnt = getMeta($modelName)->getSelectAllStatement();
       $stmnt->execute();
@@ -287,8 +284,8 @@ final class Models{
     return $stmnt->fetchAll();
   }
 
-  public static function fetchAllSafe($modelName, $data=null){
-    $models = Models::fetchAll($modelName, $data);
+  public static function findAllSafe($modelName, $data=null){
+    $models = Models::findAll($modelName, $data);
     $safe = getMeta($modelName)->getSafeAttributesKeys();
     $safeModels = [];
     foreach($models as $model){
@@ -310,19 +307,19 @@ final class Models{
     return $stmnt;
   }
 
-  public static function fetchAllCustom($modelName, $query, $data){
+  public static function findAllCustom($modelName, $query, $data){
     $stmnt = Models::createCustomStatement($query);
     $stmnt-execute($data);
     return $stmnt->fetchAll();
   }
 
-  public static function fetchSingleCustom($modelName, $query, $data){
+  public static function findCustom($modelName, $query, $data){
     $stmnt = Models::createCustomStatement($query);
     $stmnt-execute($data);
     return $stmnt->fetch();
   }
 
-  public static function fetchById($modelName, $id){
+  public static function findById($modelName, $id){
     $meta = getMeta($modelName);
     $stmnt = $meta->getSelectStatement();
     $stmnt->execute(['id' => $id]);

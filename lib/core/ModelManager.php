@@ -1,5 +1,9 @@
 <?php
 
+function getMeta($modelName){
+  return ModelManager::getMeta($modelName . 'Meta');
+}
+
 final class ModelManager{
 
   private static $models = [];

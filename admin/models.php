@@ -33,14 +33,14 @@ class User extends Model{
   }
 
   public function setUsername($username){
-    if(Models::fetchSingle(get_class($this), ['username'=>$username])){
+    if(Models::find(get_class($this), ['username'=>$username])){
       Response::fail('Username already exists.')->unwrap();
     }
     $this->username = $username;  
   }
 
   public function setEmail($email){
-    if(Models::fetchSingle(get_class($this), ['email'=>$email])){
+    if(Models::find(get_class($this), ['email'=>$email])){
       Response::fail('Email already exists.')->unwrap();
     }
     $this->email = $email;  
