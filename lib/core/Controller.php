@@ -220,7 +220,8 @@ class _ModelController extends RoutedController{
     $methName = '_delete';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
-    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+    $data = array_intersect_key($_POST, array_flip(
+      array_push($this->meta->getAttributeKeys(), 'id')));
 
     if($access != null){
       $data['creator'] = $access->getUid();
@@ -236,7 +237,8 @@ class _ModelController extends RoutedController{
     $methName = '_update';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
-    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
+    $data = array_intersect_key($_POST, array_flip(
+      array_push($this->meta->getAttributeKeys(), 'id')));
     if($access != null){
       $oldData = [
         'creator' => $access->getUid(),
@@ -275,7 +277,8 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
 
-    $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
+    $data = array_intersect_key($_GET, array_flip(
+      array_push($this->meta->getAttributeKeys(), 'id')));
     $model = Models::find($this->modelName, $data); 
 
     return Response::success($model);
@@ -287,8 +290,10 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName();
 
-    $data = array_intersect_key($_GET, array_flip($this->meta->getAttributeKeys()));
-    $models = Models::find($this->modelName, $data); 
+    $arr = $this->meta->getAttributeKeys(); 
+    array_push($arr, 'id');
+    $data = array_intersect_key($_GET, array_flip($arr));
+    $models = Models::findAllSafe($this->modelName, $data); 
 
     return Response::success($models);
   }
@@ -302,17 +307,11 @@ class _ModelController extends RoutedController{
   }
 
 
-  public function post_update($request){
-    return $this->_update($request);
-  }
   public function put_update($request){
     return $this->_update($request);
   }
 
 
-  public function post_updateAll($request){
-    return $this->_updateAll($request);
-  }
   public function put_updateAll($request){
     return $this->_update($request);
   }

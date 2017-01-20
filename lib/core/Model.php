@@ -342,7 +342,8 @@ final class Models{
     $safe = getMeta($modelName)->getSafeAttributesKeys();
     $safeModels = [];
     foreach($models as $model){
-      foreach($model as $key => $value){
+      $model = json_decode(json_encode($model), true);
+      foreach($model as $key){
         if(!in_array($key, $safe)){
           unset($model[$key]);
         }
