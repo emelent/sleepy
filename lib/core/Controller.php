@@ -172,54 +172,71 @@ class _ModelController extends RoutedController{
   }
 
   public function index($request){
+    $meta = getMeta($this->modelName);
+    $methName = '_index';
+    if(method_exists($meta, $methName))
+      return $meta->$methName();
     return Response::success('What about a ' . $this->modelName . '?');
   }
 
-  public function _create($request, $data){
+  public function _create($request){
+    $meta = getMeta($this->modelName);
+    $methName = '_create';
+    if(method_exists($meta, $methName))
+      return $meta->$methName();
     return Response::success('Implement Model create.');
   }
 
-  public function _delete($request, $data){
-    return Response::success('Implement Model create.');
+  public function _delete($request){
+    $methName = '_delete';
+    if(method_exists($meta, $methName))
+      return $meta->$methName();
+    return Response::success('Implement Model delete.');
   }
 
-  public function _update($request, $data){
-    return Response::success('Implement Model create.');
+  public function _update($request){
+    $methName = '_update';
+    if(method_exists($meta, $methName))
+      return $meta->$methName();
+    return Response::success('Implement Model update.');
   }
 
-  public function _find($request, $data){
-    return Response::success('Implement Model create.');
-  }
-
-
-  public function post_create($request, $data){
-    return $this->_create($request, $data);
-  }
-  public function put_create($request, $data){
-    return $this->_create($request, $data);
-  }
-
-
-  public function post_update($request, $data){
-    return $this->_update($request, $data);
-  }
-  public function put_update($request, $data){
-    return $this->_update($request, $data);
+  public function _find($request){
+    $methName = '_find';
+    if(method_exists($meta, $methName))
+      return $meta->$methName();
+    return Response::success('Implement Model find.');
   }
 
 
-  public function post_find($request, $data){
-    return $this->_create($request, $data);
+  public function post_create($request){
+    return $this->_create($request);
   }
-  public function get_find($request, $data){
-    return $this->_create($request, $data);
+  public function put_create($request){
+    return $this->_create($request);
   }
 
 
-  public function post_delete($request, $data){
-    return $this->_delete($request, $data);
+  public function post_update($request){
+    return $this->_update($request);
   }
-  public function delete_delete($request, $data){
-    return $this->_delete($request, $data);
+  public function put_update($request){
+    return $this->_update($request);
+  }
+
+
+  public function post_find($request){
+    return $this->_find($request);
+  }
+  public function get_find($request){
+    return $this->_find($request);
+  }
+
+
+  public function post_delete($request){
+    return $this->_delete($request);
+  }
+  public function delete_delete($request){
+    return $this->_delete($request);
   }
 }
