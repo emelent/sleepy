@@ -141,4 +141,5 @@ foreach($MODULES as $module){
   require_once(ROOT_DIR . $module . '/routes.php');
 }
 
-
+//create generic model routes
+ModelManager::createModelRoutes();
