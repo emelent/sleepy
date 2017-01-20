@@ -176,7 +176,7 @@ class _ModelController extends RoutedController{
     $methName = '_index';
     if(method_exists($meta, $methName))
       return $meta->$methName();
-    return Response::success('What about a ' . $this->modelName . '?');
+    return Response::success("Yes... Tell me more about this '" . $this->modelName . "'");
   }
 
   public function _create($request){
