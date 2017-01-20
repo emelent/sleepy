@@ -14,10 +14,7 @@ abstract class ModelMeta{
   public static $AUTH_WRITE  = 3;
   public static $OWN_READ    = 4;
   public static $OWN_WRITE   = 5;
-  protected $acl = [
-    'READ' => 0,
-    'WRITE' => 1,
-  ];
+  protected $acl = [];
 
   private $tableName; 
   private $modelName;
@@ -47,6 +44,8 @@ abstract class ModelMeta{
     $this->modelName = substr(get_class($this), 0, strlen(get_class($this)) - strlen('Meta'));
     $this->attr_define = $attr_define;
     $this->prepareStatements();
+    $this->acl['READ'] = $this::$ALL_READ;
+    $this->acl['WRITE'] = $this::$ALL_WRITE;
   }
   
   public function shouldAutoRoute(){

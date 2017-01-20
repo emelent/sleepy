@@ -75,7 +75,7 @@ class Auth{
     );
   }
 
-  private static function requireAuthorisation(){
+  public static function requireAuthorisation(){
     // Handle a request to a resource and authenticate the access token
     if (!Auth::$server->verifyResourceRequest(Auth::getOAuthRequest())) {
       //Response::fail("Not authorised.")->unwrap();
