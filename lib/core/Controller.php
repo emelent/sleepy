@@ -156,3 +156,70 @@ abstract class RoutedController extends Controller{
     return Response::success();
   }
 }
+
+
+/*
+ * _ModelController is a controller used to create generic default 
+ * CRUD routes for all registered models.
+ *
+ */
+
+class _ModelController extends RoutedController{
+
+  public function __construct($modelName){
+    $parent::__construct();
+    $this->modelName = $modelName;
+  }
+
+  public function index($request){
+    return Response::success('What about a ' . $this->modelName . '?');
+  }
+
+  public function _create($request, $data){
+    return Response::success('Implement Model create.');
+  }
+
+  public function _delete($request, $data){
+    return Response::success('Implement Model create.');
+  }
+
+  public function _update($request, $data){
+    return Response::success('Implement Model create.');
+  }
+
+  public function _find($request, $data){
+    return Response::success('Implement Model create.');
+  }
+
+
+  public function post_create($request, $data){
+    return $this->_create($request, $data);
+  }
+  public function put_create($request, $data){
+    return $this->_create($request, $data);
+  }
+
+
+  public function post_update($request, $data){
+    return $this->_update($request, $data);
+  }
+  public function put_update($request, $data){
+    return $this->_update($request, $data);
+  }
+
+
+  public function post_find($request, $data){
+    return $this->_create($request, $data);
+  }
+  public function get_find($request, $data){
+    return $this->_create($request, $data);
+  }
+
+
+  public function post_delete($request, $data){
+    return $this->_delete($request, $data);
+  }
+  public function delete_delete($request, $data){
+    return $this->_delete($request, $data);
+  }
+}
