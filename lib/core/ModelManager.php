@@ -55,9 +55,12 @@ final class ModelManager{
   public static function createModelRoutes(){
     foreach(ModelManager::$models as $model){
       $modelName = strtolower($model);
-      Router::route([
-        "$modelName/*" => new _ModelController($model)
-      ]);
+      $meta = getMeta($model);
+      if($meta->shouldAutoRoute()){
+        Router::route([
+          "$modelName/*" => new _ModelController($model)
+        ]);
+      }
     }
   }
 

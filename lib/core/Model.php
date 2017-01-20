@@ -11,6 +11,7 @@ abstract class ModelMeta{
   private $modelName;
   private $attr_define;
   protected $hidden_attr = [];
+  protected $auto_route = true;
 
   private $insertStatement;
   private $insertStrictStatement;
@@ -36,6 +37,10 @@ abstract class ModelMeta{
     $this->prepareStatements();
   }
   
+  public function shouldAutoRoute(){
+    return $this->auto_route;
+  }
+
   public function getSafeAttributesKeys(){
     return array_merge(['id'], array_diff($this->getAttributeKeys(), $this->hidden_attr));
   }
