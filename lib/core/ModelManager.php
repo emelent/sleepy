@@ -50,8 +50,9 @@ final class ModelManager{
 
   public static function createModelRoutes(){
     foreach(ModelManager::$models as $model){
+      $modelName = strtolower($model);
       Router::route([
-        "$model/*" => new _ModelController($model)
+        "$modelName/*" => new _ModelController($model)
       ]);
     }
   }
