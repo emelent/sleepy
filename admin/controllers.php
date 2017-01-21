@@ -17,13 +17,13 @@ class UserController extends RoutedController{
     //a failed response ourselves instead of letting the API handle the
     //exception thrown by our database so we can have a more detailed and clear
     //failure reason
-    if(Models::fetchSingle('User', ['email'=> $email])){
+    if(Models::find('User', ['email'=> $email])){
       return Response::fail('Email already in use.');
     }
     $user = new User([
       'email' => $email,
       'password' => $pass,
-      'username' => str_replace('.', '_', str_replace('@', '_',$email))
+      'username' => Auth::generateUsername($email)
     ]);
     $user->save();
     //create new activation code
@@ -55,7 +55,7 @@ class UserController extends RoutedController{
     if(!validateEmail($email)){
       return Response::fail("Invalid email address.");
     }
-    if(Models::fetchSingle('User', ['email'=> $email]))
+    if(Models::find('User', ['email'=> $email]))
       return Response::fail("Email already in use.");
     return Response::success("Email available.");
   }
@@ -69,7 +69,7 @@ class UserController extends RoutedController{
     if(!validateUsername($username)){
       return Response::fail("Invalid username.");
     }
-    if(Models::fetchSingle('User', ['username'=> $username]))
+    if(Models::find('User', ['username'=> $username]))
       return Response::fail("Username already in use.");
     return Response::success("Username available.");
   }
@@ -123,7 +123,7 @@ class UserController extends RoutedController{
       return Response::fail("No activation code sent.");
     }
     
-    $code = Models::fetchSingle('ActivationCode', ['code' => $code]);
+    $code = Models::find('ActivationCode', ['code' => $code]);
     if($code == null){
       return Response::fail("Invalid or used activation code.");
     }
@@ -146,8 +146,27 @@ class UserController extends RoutedController{
 class AuthController extends RoutedController{
 
   public function post_token($request){
-    $_POST['client_id'] = CLIENT_ID;
-    $_POST['client_secret'] = CLIENT_SECRET;
+    if(!isset($_POST['client_id']))
+      $_POST['client_id'] = CLIENT_ID;
+    if(!isset($_POST['client_secret']))
+      $_POST['client_secret'] = CLIENT_SECRET;
+    if(!isset($_POST['grant_type']))
+      $_POST['grant_type'] = 'password';
+    //prevent username from being passed, only use generated username
+    //based on email address
+    $_POST['username'] = '';
+    if(isset($_POST['email'])){
+      $_POST['username'] = Auth::generateUsername($_POST['email']);
+    }
+    return Auth::requestToken();
+  }
+
+  public function post_refresh($request){
+    if(!isset($_POST['client_id']))
+      $_POST['client_id'] = CLIENT_ID;
+    if(!isset($_POST['client_secret']))
+      $_POST['client_secret'] = CLIENT_SECRET;
+    $_POST['grant_type'] = 'refresh_token';
     return Auth::requestToken();
   }
 

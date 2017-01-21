@@ -16,7 +16,7 @@ class UserMeta extends ModelMeta{
       'first_name' => new CharField(255, ['null'=>true]),  
       'last_name' => new CharField(255, ['null'=>true]),  
     ]); 
-    $this->acl['READ'] = [ModelMeta::$ADMIN_READ];
+    //$this->acl['READ'] = [ModelMeta::$AUTH_READ];
     $this->acl['WRITE'] = ModelMeta::$AUTH_WRITE;
   }
 }

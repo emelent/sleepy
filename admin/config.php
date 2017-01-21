@@ -22,7 +22,7 @@ define('DB_PASS', 'toor');
 /* Directory constants */
 define('ROOT_DIR', implode('/', $temp) . '/');
 define('LIB_DIR', ROOT_DIR . 'lib/');
-define('HOME_URL', 'http://localhost/api2/');
+define('HOME_URL', 'http://localhost/sleepy/');
 
 /* Error codes */
 define('ERR_UNK_REQ', 0);  //unknown request method

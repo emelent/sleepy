@@ -166,8 +166,9 @@ abstract class RoutedController extends Controller{
 
 class _ModelController extends RoutedController{
 
-  private static $READ = 'READ';
-  private static $WRITE= 'WRITE';
+  private static $READ    = 'READ';
+  private static $WRITE   = 'WRITE';
+  private static $CREATE  = 'CREATE';
 
   public function __construct($modelName){
     parent::__construct();
@@ -175,8 +176,7 @@ class _ModelController extends RoutedController{
     $this->meta = getMeta($this->modelName);
   }
 
-  protected function requestAccess($type){
-    $access = $this->meta->getAcl()[$type];   
+  protected function checkAccess($access){
     switch($access){
       case ModelMeta::$ALL_READ:
       case ModelMeta::$ALL_WRITE:
@@ -192,11 +192,30 @@ class _ModelController extends RoutedController{
         return Auth::currentUser();
       case ModelMeta::$ADMIN_READ:
       case ModelMeta::$ADMIN_WRITE:
-        return Auth::requireAdminAuthorisation();
+        return Auth::requireAdminAuth();
     }
-
     return null;
   }
+
+  protected function requestAccess($type){
+    $access = $this->meta->getAcl()[$type];   
+    if(gettype($access) == 'array'){
+      $count = 0;
+      foreach($access as $acc){
+        try{
+          return $this->checkAccess($acc);
+        }catch(KnownException $e){
+          $count++;
+          if($count >= count($access)){
+            throw new KnownException('Not authorised.', ERR_UNAUTHORISED);
+          }
+        }
+      }
+    }
+
+    return $this->checkAccess($access);
+  }
+
 
   //TODO might want to comment this out on deploy
   public function index($request){
@@ -208,7 +227,7 @@ class _ModelController extends RoutedController{
   }
 
   public function _create($request){
-    $this->requestAccess($this::$WRITE);
+    $this->requestAccess($this::$CREATE);
     $methName = '_create';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);

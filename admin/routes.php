@@ -1,7 +1,7 @@
 <?php
 
 Router::route([
-  'user/*' => new UserController(),
+  'account/*' => new UserController(),
   'auth/*' => new AuthController(),
 
   'migrate/' => function($request){

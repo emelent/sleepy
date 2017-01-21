@@ -49,12 +49,18 @@ class Auth{
     $data = $response->getParameters();
     $statusCode = $response->getStatusCode();
     $success = true;
+    if(isset($data['error_description'])){
+      return Response::fail("[OAuth] {$data['error_description']}", $statusCode);
+    }
     if(isset($data['error'])){
       return Response::fail("[OAuth] {$data['error']}", $statusCode);
     }
     return Response::success($data, $statusCode);
   }
 
+  public static function generateUsername($email){
+    return urlencode($email);
+  }
   public static function getOAuthRequest(){
     return OAuth2\Request::createFromGlobals();
   }
@@ -120,7 +126,7 @@ class Auth{
     if(Auth::$user == null){
       //TODO get user from db using api key
       $tokenData = Auth::getTokenData();
-      Auth::$user = Models::fetchSingle('User', [
+      Auth::$user = Models::find('User', [
         'username'=> $tokenData['user_id']
       ]);
     }

@@ -48,6 +48,7 @@ abstract class ModelMeta{
     $this->prepareStatements();
     $this->acl['READ'] = $this::$ALL_READ;
     $this->acl['WRITE'] = $this::$ALL_WRITE;
+    $this->acl['CREATE'] = $this::$ALL_WRITE;
   }
   
   public function shouldAutoRoute(){
