@@ -130,7 +130,7 @@ class UserController extends RoutedController{
       return Response::fail("Invalid or used activation code.");
     }
 
-    $user = Models::findBy('User', $code->getUserId());
+    $user = Models::findById('User', $code->getUserId());
 
     //TODO check if code has expired
     if($user == null){
