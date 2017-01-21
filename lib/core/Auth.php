@@ -1,15 +1,15 @@
 <?php
 
-const GUEST = 0;
+const GUEST = 2;
 const USER = 1;
-const ADMIN = 9;
+const ADMIN = 0;
 
 class Auth{
 
   public static $GROUP = [
-    GUEST  => 'guest',
+    ADMIN => 'admin',
     USER  => 'user',
-    ADMIN => 'admin'
+    GUEST  => 'guest',
   ];
 
   private static $server = null;
@@ -75,12 +75,20 @@ class Auth{
     );
   }
 
-  public static function requireAuthorisation(){
+  public static function requireAuth(){
     // Handle a request to a resource and authenticate the access token
     if (!Auth::$server->verifyResourceRequest(Auth::getOAuthRequest())) {
-      //Response::fail("Not authorised.")->unwrap();
       throw new KnownException('Not authorised', ERR_UNAUTHORISED);
     }
+  }
+
+  public static function requireAdminAuth(){
+    $user = Auth::currentUser();
+    if(!$user){
+      throw new KnownException('Not authorised', ERR_UNAUTHORISED);
+    }
+    if($user->group != ADMIN)
+      throw new KnownException('Not authorised', ERR_UNAUTHORISED);
   }
 
   public static function getTokenData(){
@@ -99,14 +107,16 @@ class Auth{
     //TODO require user to be of certain group.. maybe this can
     //be done with oauth
     $user = Auth::currentUser();
-    if($user->group < $group){
-      //TODO throw exception restricted access
+    if($user == null)
+      throw new KnownException('Not authorised', ERR_UNAUTHORISED);
+
+    if($user->group != $group && $user->group != ADMIN){
       throw new KnownException('Not authorised', ERR_UNAUTHORISED);
     }
   }
 
   public static function currentUser(){
-    Auth::requireAuthorisation();
+    Auth::requireAuth();
     if(Auth::$user == null){
       //TODO get user from db using api key
       $tokenData = Auth::getTokenData();

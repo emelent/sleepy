@@ -184,12 +184,15 @@ class _ModelController extends RoutedController{
 
       case ModelMeta::$AUTH_READ:
       case ModelMeta::$AUTH_WRITE:
-        Auth::requireAuthorisation();
+        Auth::requireAuth();
         break;
 
       case ModelMeta::$OWN_READ:
       case ModelMeta::$OWN_WRITE:
         return Auth::currentUser();
+      case ModelMeta::$ADMIN_READ:
+      case ModelMeta::$ADMIN_WRITE:
+        return Auth::requireAdminAuthorisation();
     }
 
     return null;
