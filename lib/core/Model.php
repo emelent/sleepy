@@ -14,6 +14,8 @@ abstract class ModelMeta{
   public static $AUTH_WRITE  = 3;
   public static $OWN_READ    = 4;
   public static $OWN_WRITE   = 5;
+  public static $ADMIN_READ  = 6;
+  public static $ADMIN_WRITE = 7;
   protected $acl = [];
 
   private $tableName; 
