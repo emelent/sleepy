@@ -27,15 +27,18 @@ class UserController extends RoutedController{
     ]);
     $user->save();
     //create new activation code
+    $key = hash('sha256', uniqid('c0d3', true));
     $code = new ActivationCode([
       'user_id' => $user->getId(),
       'expires' => date("Y-m-d H:i:s", strtotime("+7 day")),
-      'code'    => hash('sha256', uniqid('c0d3', true))
+      'code'    => $key
     ]);
     $code->save();
+    $link = HOME_URL . "account/activate/$key/";
+    $message = "Click $link to activate your account.";
 
-    //TODO send activation code via email
-    //mail(...);
+    if(!mail($email, 'Account Activation Link', $message));
+      Response::success("Account created.");
     return Response::success("Account successfully created.");
   }
 
@@ -117,7 +120,6 @@ class UserController extends RoutedController{
   }
 
   public function get_activate($request, $code){
-    $user = Auth::currentUser();
     if(!isset($code)){
       //TODO put a proper http response code
       return Response::fail("No activation code sent.");
@@ -127,6 +129,9 @@ class UserController extends RoutedController{
     if($code == null){
       return Response::fail("Invalid or used activation code.");
     }
+
+    $user = Models::findBy('User', $code->getUserId());
+
     //TODO check if code has expired
     if($user == null){
       return Response::fail("Invalid activation code.");
