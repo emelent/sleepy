@@ -200,7 +200,7 @@ class _ModelController extends RoutedController{
     $methName = '_index';
     if($request->getRequestMethod())
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
     return Response::success("Yes... Tell me more about this '" . $this->modelName . "'");
   }
 
@@ -208,7 +208,7 @@ class _ModelController extends RoutedController{
     $this->requestAccess($this::$WRITE);
     $methName = '_create';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
     $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
     $model = Models::create($this->modelName, $data); 
 
@@ -219,7 +219,7 @@ class _ModelController extends RoutedController{
     $access = $this->requestAccess($this::$WRITE);
     $methName = '_delete';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
     $data = array_intersect_key($_POST, array_flip(
       array_push($this->meta->getAttributeKeys(), 'id')));
 
@@ -236,7 +236,7 @@ class _ModelController extends RoutedController{
     $access = $this->requestAccess($this::$WRITE);
     $methName = '_update';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
     $data = array_intersect_key($_POST, array_flip(
       array_push($this->meta->getAttributeKeys(), 'id')));
     if($access != null){
@@ -256,7 +256,7 @@ class _ModelController extends RoutedController{
     $access = $this->requestAccess($this::$WRITE);
     $methName = '_updateAll';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
     if(!arrayKeysSet(['find', 'set'], $_POST)){
       throw new KnownException("Missing params 'find' and 'set'.", ERR_INCOMP_REQ);
     }
@@ -275,7 +275,7 @@ class _ModelController extends RoutedController{
     $access = $this->requestAccess($this::$READ);
     $methName = '_find';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
 
     $data = array_intersect_key($_GET, array_flip(
       array_push($this->meta->getAttributeKeys(), 'id')));
@@ -288,7 +288,7 @@ class _ModelController extends RoutedController{
     $access = $this->requestAccess($this::$READ);
     $methName = '_findAll';
     if(method_exists($this->meta, $methName))
-      return $this->meta->$methName();
+      return $this->meta->$methName($request);
 
     $arr = $this->meta->getAttributeKeys(); 
     array_push($arr, 'id');
