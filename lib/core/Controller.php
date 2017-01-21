@@ -299,8 +299,9 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    $data = array_intersect_key($_GET, array_flip(
-      array_push($this->meta->getAttributeKeys(), 'id')));
+    $arr = $this->meta->getAttributeKeys(); 
+    array_push($arr, 'id');
+    $data = array_intersect_key($_GET, array_flip($arr));
     $model = Models::find($this->modelName, $data); 
 
     return Response::success($model);
@@ -315,7 +316,7 @@ class _ModelController extends RoutedController{
     $arr = $this->meta->getAttributeKeys(); 
     array_push($arr, 'id');
     $data = array_intersect_key($_GET, array_flip($arr));
-    $models = Models::findAllSafe($this->modelName, $data); 
+    $models = Models::findAll($this->modelName, $data); 
 
     return Response::success($models);
   }
