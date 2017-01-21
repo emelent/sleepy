@@ -8,7 +8,7 @@ class UserMeta extends ModelMeta{
     parent::__construct('users', [
       'email'  => new CharField(40, ['unique' => true]),
       'username' => new CharField(255, ['unique' => true]),
-      'uid' => new CharField(255, ['unique' => true, 'null' => true]),
+      'uid' => new CharField(255, ['unique' => true]),
       'password' => new CharField(255),
       'created' => new DateTimeField(['default'=> 'CURRENT_TIMESTAMP']),
       'activated' => new BooleanField(['default'=> 'FALSE']),
@@ -16,6 +16,7 @@ class UserMeta extends ModelMeta{
       'first_name' => new CharField(255, ['null'=>true]),  
       'last_name' => new CharField(255, ['null'=>true]),  
     ]); 
+    $this->acl['READ'] = [ModelMeta::$ADMIN_READ];
     $this->acl['WRITE'] = ModelMeta::$AUTH_WRITE;
   }
 }
