@@ -29,6 +29,15 @@ abstract class Controller{
     }
   }
 
+  /*
+   * Asserts that an associative array has the necessary keys set.
+   *
+   * @param {array} $keys       =  array of keys to look for.
+   * @param {array} $array      =  associative arrays to checkassociative arrays to check
+   *
+   * @throws KnownException 
+   * @return null
+   */
   protected function assertArrayKeysSet($keys, $array){
     if(!arrayKeysSet($keys, $array)){
       throw new KnownException('Missing request parameters', ERR_INCOMP_REQ);
@@ -152,6 +161,13 @@ class _InjectController extends Controller{
 abstract class RoutedController extends Controller{
 
 
+  /*
+   * Index method, which is the top level route for the controller
+   *
+   * @param {object} $request       =  Contains request information
+   *
+   * @return {Response}
+   */
   public function index($request){
     return Response::success();
   }
@@ -176,6 +192,15 @@ class _ModelController extends RoutedController{
     $this->meta = getMeta($this->modelName);
   }
 
+
+  /*
+   * Checks if user has access to request resource.
+   *
+   * @param {int} $access       =  Access level
+   *
+   * @throws KnownException 
+   * @return {null|User}
+   */
   protected function checkAccess($access){
     switch($access){
       case ModelMeta::$ALL_READ:
@@ -197,6 +222,15 @@ class _ModelController extends RoutedController{
     return null;
   }
 
+
+  /*
+   * Request access check for the given type
+   *
+   * @param {string} $type       =  Access type
+   *
+   * @throws KnownException 
+   * @return {null|User}
+   */
   protected function requestAccess($type){
     $access = $this->meta->getAcl()[$type];   
     if(gettype($access) == 'array'){
@@ -217,6 +251,11 @@ class _ModelController extends RoutedController{
   }
 
 
+
+
+  /*
+   * @override
+   */
   //TODO might want to comment this out on deploy
   public function index($request){
     $methName = '_index';
@@ -327,9 +366,9 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    if(!isset($_POST['filter']))
+    if(!isset($_GET['filter']))
       throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
-    $data = $this->getDataArray($_POST['filter']);
+    $data = $this->getDataArray($_GET['filter']);
 
     if($access != null){
       if($this->modelName == 'User')
@@ -349,10 +388,10 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    if(!isset($_POST['filter']))
-      throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
-    $data = $this->getDataArray($_POST['filter']);
-
+    if(isset($_GET['filter']))
+      $data = $this->getDataArray($_GET['filter']);
+    else
+      $data = [];
     if($access != null){
       if($this->modelName == 'User')
         $data['id'] =$access->getId();
