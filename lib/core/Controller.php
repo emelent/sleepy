@@ -301,7 +301,7 @@ class _ModelController extends RoutedController{
       if($this->modelName == 'User')
         $data['id'] = $access->getId();
       else
-        $data['creator'] = $access->getId();
+        $data['owner'] = $access->getId();
     }
 
     Models::delete($this->modelName, $data); 
@@ -326,7 +326,7 @@ class _ModelController extends RoutedController{
         ];
       }else{
         $oldData = [
-          'creator' => $access->getId(),
+          'owner' => $access->getId(),
           'id'  => $id
         ];
       }
@@ -353,7 +353,7 @@ class _ModelController extends RoutedController{
       if($this->modelName == 'User')
         $oldData['id'] =$access->getId();
       else
-        $oldData['creator'] =$access->getId();
+        $oldData['owner'] =$access->getId();
     }
     Models::updateAll($this->modelName, $newData, $oldData);
 
@@ -374,7 +374,7 @@ class _ModelController extends RoutedController{
       if($this->modelName == 'User')
         $data['id'] =$access->getId();
       else
-        $data['creator'] =$access->getId();
+        $data['owner'] =$access->getId();
     }
 
     $model = Models::find($this->modelName, $data); 
@@ -396,7 +396,7 @@ class _ModelController extends RoutedController{
       if($this->modelName == 'User')
         $data['id'] =$access->getId();
       else
-        $data['creator'] =$access->getId();
+        $data['owner'] =$access->getId();
     }
 
     $models = Models::findAll($this->modelName, $data); 
