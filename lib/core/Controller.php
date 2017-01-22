@@ -29,6 +29,15 @@ abstract class Controller{
     }
   }
 
+  /*
+   * Asserts that an associative array has the necessary keys set.
+   *
+   * @param {array} $keys       =  array of keys to look for.
+   * @param {array} $array      =  associative arrays to checkassociative arrays to check
+   *
+   * @throws KnownException 
+   * @return null
+   */
   protected function assertArrayKeysSet($keys, $array){
     if(!arrayKeysSet($keys, $array)){
       throw new KnownException('Missing request parameters', ERR_INCOMP_REQ);
@@ -152,6 +161,13 @@ class _InjectController extends Controller{
 abstract class RoutedController extends Controller{
 
 
+  /*
+   * Index method, which is the top level route for the controller
+   *
+   * @param {object} $request       =  Contains request information
+   *
+   * @return {Response}
+   */
   public function index($request){
     return Response::success();
   }
@@ -176,6 +192,15 @@ class _ModelController extends RoutedController{
     $this->meta = getMeta($this->modelName);
   }
 
+
+  /*
+   * Checks if user has access to request resource.
+   *
+   * @param {int} $access       =  Access level
+   *
+   * @throws KnownException 
+   * @return {null|User}
+   */
   protected function checkAccess($access){
     switch($access){
       case ModelMeta::$ALL_READ:
@@ -197,6 +222,15 @@ class _ModelController extends RoutedController{
     return null;
   }
 
+
+  /*
+   * Request access check for the given type
+   *
+   * @param {string} $type       =  Access type
+   *
+   * @throws KnownException 
+   * @return {null|User}
+   */
   protected function requestAccess($type){
     $access = $this->meta->getAcl()[$type];   
     if(gettype($access) == 'array'){
@@ -217,6 +251,11 @@ class _ModelController extends RoutedController{
   }
 
 
+
+
+  /*
+   * @override
+   */
   //TODO might want to comment this out on deploy
   public function index($request){
     $methName = '_index';
@@ -226,14 +265,25 @@ class _ModelController extends RoutedController{
     return Response::success("Yes... Tell me more about this '" . $this->modelName . "'");
   }
 
+  private function getDataArray($json_str){
+    try{
+      return json_decode($json_str, true);
+    }catch(Exception $e){
+      throw new KnownException('Invalid json string.', ERR_BAD_REQ);
+    }
+  }
+
   public function _create($request){
     $this->requestAccess($this::$CREATE);
     $methName = '_create';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
-    $data = array_intersect_key($_POST, array_flip($this->meta->getAttributeKeys()));
-    $model = Models::create($this->modelName, $data); 
 
+    if(!isset($_POST['create']))
+      throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
+    $data = $this->getDataArray($_POST['filter']);
+
+    $model = Models::create($this->modelName, $data); 
     return Response::success($model);
   }
 
@@ -242,11 +292,16 @@ class _ModelController extends RoutedController{
     $methName = '_delete';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
-    $data = array_intersect_key($_POST, array_flip(
-      array_push($this->meta->getAttributeKeys(), 'id')));
+
+    if(!isset($_POST['filter']))
+      throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
+    $data = $this->getDataArray($_POST['filter']);
 
     if($access != null){
-      $data['creator'] = $access->getUid();
+      if($this->modelName == 'User')
+        $data['id'] = $access->getId();
+      else
+        $data['creator'] = $access->getId();
     }
 
     Models::delete($this->modelName, $data); 
@@ -254,18 +309,27 @@ class _ModelController extends RoutedController{
     return Response::success($this->modelName . ' successfully deleted.');
   }
 
-  public function _update($request){
+  public function _update($request, $id){
     $access = $this->requestAccess($this::$WRITE);
     $methName = '_update';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
-    $data = array_intersect_key($_POST, array_flip(
-      array_push($this->meta->getAttributeKeys(), 'id')));
+
+    if(!isset($_POST['set']))
+      throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
+    $data = $this->getDataArray($_POST['set']);
+
     if($access != null){
-      $oldData = [
-        'creator' => $access->getUid(),
-        'id'  => $data['id']
-      ];
+      if($this->modelName == 'User'){
+        $oldData = [
+          'id'  => $access->getId()
+        ];
+      }else{
+        $oldData = [
+          'creator' => $access->getId(),
+          'id'  => $id
+        ];
+      }
       Models::updateAll($this->modelName, $data, $oldData); 
     }else{
       Models::update($this->modelName, $data); 
@@ -279,14 +343,17 @@ class _ModelController extends RoutedController{
     $methName = '_updateAll';
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
-    if(!arrayKeysSet(['find', 'set'], $_POST)){
+    if(!arrayKeysSet(['filter', 'set'], $_POST)){
       throw new KnownException("Missing params 'find' and 'set'.", ERR_INCOMP_REQ);
     }
-    $oldData = json_decode($_POST['find'], true);
-    $newData = json_decode($_POST['set'], true);
+    $oldData = $this->getDataArray($_POST['filter']);
+    $newData = $this->getDataArray($_POST['set']);
 
     if($access != null){
-      $oldData['creator'] =$access->getUid();
+      if($this->modelName == 'User')
+        $oldData['id'] =$access->getId();
+      else
+        $oldData['creator'] =$access->getId();
     }
     Models::updateAll($this->modelName, $newData, $oldData);
 
@@ -299,9 +366,17 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    $arr = $this->meta->getAttributeKeys(); 
-    array_push($arr, 'id');
-    $data = array_intersect_key($_GET, array_flip($arr));
+    if(!isset($_GET['filter']))
+      throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
+    $data = $this->getDataArray($_GET['filter']);
+
+    if($access != null){
+      if($this->modelName == 'User')
+        $data['id'] =$access->getId();
+      else
+        $data['creator'] =$access->getId();
+    }
+
     $model = Models::find($this->modelName, $data); 
 
     return Response::success($model);
@@ -313,9 +388,17 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    $arr = $this->meta->getAttributeKeys(); 
-    array_push($arr, 'id');
-    $data = array_intersect_key($_GET, array_flip($arr));
+    if(isset($_GET['filter']))
+      $data = $this->getDataArray($_GET['filter']);
+    else
+      $data = [];
+    if($access != null){
+      if($this->modelName == 'User')
+        $data['id'] =$access->getId();
+      else
+        $data['creator'] =$access->getId();
+    }
+
     $models = Models::findAll($this->modelName, $data); 
 
     return Response::success($models);

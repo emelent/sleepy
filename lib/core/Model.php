@@ -119,6 +119,9 @@ abstract class ModelMeta{
     $this->deleteStatement = $pdo->prepare($delete);
     $this->selectStatement = $pdo->prepare($select);
     $this->selectAllStatement = $pdo->prepare($selectAll);
+
+    //set fetch modes
+    $this->selectAllStatement->setFetchMode(PDO::FETCH_CLASS, $this->modelName);
   }
 
   public function getSqlSchema(){
@@ -379,8 +382,6 @@ final class Models{
     $meta = getMeta($modelName);
     $stmnt = $meta->getSelectStatement();
     $stmnt->execute(['id' => $id]);
-
-    $stmnt->setFetchMode(PDO::FETCH_CLASS, $meta->getModelName());
 
     return $stmnt->fetch();
   }
