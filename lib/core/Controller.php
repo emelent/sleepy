@@ -246,7 +246,10 @@ class _ModelController extends RoutedController{
       array_push($this->meta->getAttributeKeys(), 'id')));
 
     if($access != null){
-      $data['creator'] = $access->getUid();
+      if($this->modelName == 'User')
+        $data['id'] = $access->getId();
+      else
+        $data['creator'] = $access->getId();
     }
 
     Models::delete($this->modelName, $data); 
@@ -262,10 +265,16 @@ class _ModelController extends RoutedController{
     $data = array_intersect_key($_POST, array_flip(
       array_push($this->meta->getAttributeKeys(), 'id')));
     if($access != null){
-      $oldData = [
-        'creator' => $access->getUid(),
-        'id'  => $data['id']
-      ];
+      if($this->modelName == 'User'){
+        $oldData = [
+          'id'  => $access->getId();
+        ];
+      }else{
+        $oldData = [
+          'creator' => $access->getId(),
+          'id'  => $data['id']
+        ];
+      }
       Models::updateAll($this->modelName, $data, $oldData); 
     }else{
       Models::update($this->modelName, $data); 
@@ -282,11 +291,14 @@ class _ModelController extends RoutedController{
     if(!arrayKeysSet(['find', 'set'], $_POST)){
       throw new KnownException("Missing params 'find' and 'set'.", ERR_INCOMP_REQ);
     }
-    $oldData = json_decode($_POST['find'], true);
+    $oldData = json_decode($_POST['filter'], true);
     $newData = json_decode($_POST['set'], true);
 
     if($access != null){
-      $oldData['creator'] =$access->getUid();
+      if($this->modelName == 'User')
+        $oldData['id'] =$access->getId();
+      else
+        $oldData['creator'] =$access->getId();
     }
     Models::updateAll($this->modelName, $newData, $oldData);
 
@@ -302,6 +314,14 @@ class _ModelController extends RoutedController{
     $arr = $this->meta->getAttributeKeys(); 
     array_push($arr, 'id');
     $data = array_intersect_key($_GET, array_flip($arr));
+
+    if($access != null){
+      if($this->modelName == 'User')
+        $data['id'] =$access->getId();
+      else
+        $data['creator'] =$access->getId();
+    }
+
     $model = Models::find($this->modelName, $data); 
 
     return Response::success($model);
@@ -316,6 +336,14 @@ class _ModelController extends RoutedController{
     $arr = $this->meta->getAttributeKeys(); 
     array_push($arr, 'id');
     $data = array_intersect_key($_GET, array_flip($arr));
+
+    if($access != null){
+      if($this->modelName == 'User')
+        $data['id'] =$access->getId();
+      else
+        $data['creator'] =$access->getId();
+    }
+
     $models = Models::findAll($this->modelName, $data); 
 
     return Response::success($models);
