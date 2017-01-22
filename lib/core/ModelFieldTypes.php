@@ -52,6 +52,14 @@ class CustomField extends BaseFieldType{
   }
 }
 
+# COMPOSITE KEY TYPE
+class CompositeKey extends CustomField{
+  public function __construct($keys){
+    $superkey = implode(', ', $keys);
+    $this->stringValue = "PRIMARY KEY ($superkey)";
+  }
+}
+
 # STANDARD SQL TYPES
 class CharField extends BaseFieldType
 {
