@@ -122,6 +122,7 @@ abstract class ModelMeta{
 
     //set fetch modes
     $this->selectAllStatement->setFetchMode(PDO::FETCH_CLASS, $this->modelName);
+    $this->selectStatement->setFetchMode(PDO::FETCH_CLASS, $this->modelName);
   }
 
   public function getSqlSchema(){
@@ -132,13 +133,16 @@ abstract class ModelMeta{
       ;
     foreach($this->attr_define as $key => $value){
       if ($value instanceof BaseFieldType){
-       $sqlSchema .= "$indent`$key` $value,\n"; 
+        if($value instanceof TableProperty)
+          $sqlSchema .= "$indent$value,\n"; 
+        else
+         $sqlSchema .= "$indent`$key` $value,\n"; 
       }else{
         throw new KnownException('Invalid ModelMeta DataType', ERR_UNEXPECTED);
       }
     }
 
-    //remove last ','
+    //remove last ',\n'
     $sqlSchema = substr($sqlSchema, 0, strlen($sqlSchema) -2);
     $sqlSchema .= "\n);\n";
 
@@ -483,7 +487,10 @@ abstract class Model implements JsonSerializable {
       }else{
         $obj = Models::create($this->className, $this->toArrayNoId());
       }
-      $this->id = $obj->id;
+      //sync all values with those from the database
+      foreach($obj as $key => $value){
+        $this->$key = $value;
+      }
     }
   }
 
