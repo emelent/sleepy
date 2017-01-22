@@ -327,7 +327,7 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    if(!isset($_POST['filter'])){
+    if(!isset($_POST['filter']))
       throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
     $data = $this->getDataArray($_POST['filter']);
 
@@ -349,7 +349,7 @@ class _ModelController extends RoutedController{
     if(method_exists($this->meta, $methName))
       return $this->meta->$methName($request);
 
-    if(!isset($_POST['filter'])){
+    if(!isset($_POST['filter']))
       throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
     $data = $this->getDataArray($_POST['filter']);
 
