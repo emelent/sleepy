@@ -122,6 +122,7 @@ abstract class ModelMeta{
 
     //set fetch modes
     $this->selectAllStatement->setFetchMode(PDO::FETCH_CLASS, $this->modelName);
+    $this->selectStatement->setFetchMode(PDO::FETCH_CLASS, $this->modelName);
   }
 
   public function getSqlSchema(){
