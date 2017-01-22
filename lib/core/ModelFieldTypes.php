@@ -52,11 +52,17 @@ class CustomField extends BaseFieldType{
   }
 }
 
+class TableProperty extends CustomField{
+  public function __construct($sqlString){
+    parent::__construct($sqlString);
+  }
+}
+
 # COMPOSITE KEY TYPE
-class CompositeKey extends CustomField{
+class CompositeKey extends TableProperty{
   public function __construct($keys){
     $superkey = implode(', ', $keys);
-    $this->stringValue = "PRIMARY KEY ($superkey)";
+    parent::__construct("PRIMARY KEY ($superkey)");
   }
 }
 
