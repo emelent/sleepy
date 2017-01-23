@@ -281,8 +281,7 @@ class _ModelController extends RoutedController{
 
     if(!isset($_POST['create']))
       throw new KnownException('Incomplete request.', ERR_INCOMP_REQ);
-    $data = $this->getDataArray($_POST['filter']);
-
+    $data = $this->getDataArray($_POST['create']);
     $model = Models::create($this->modelName, $data); 
     return Response::success($model);
   }

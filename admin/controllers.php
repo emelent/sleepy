@@ -21,9 +21,10 @@ class UserController extends RoutedController{
       return Response::fail('Email already in use.');
     }
     $user = new User([
-      'email' => $email,
-      'password' => $pass,
-      'username' => Auth::generateUsername($email)
+      'email'     => $email,
+      'password'  => $pass,
+      'username'  => Auth::generateUsername($email),
+      'uid'       => uniqid('uid', true)
     ]);
     $user->save();
     //create new activation code

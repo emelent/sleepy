@@ -24,12 +24,6 @@ class UserMeta extends ModelMeta{
 //USER MODEL
 class User extends Model{
 
-  public function __construct($data=null){
-    parent::__construct($data);
-    //generate UUID, update this after research
-    $this->uid = uniqid(); 
-  }
-
   public function setPassword($pass){
     $this->password = Auth::hashPassword($pass);
   }
