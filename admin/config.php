@@ -144,6 +144,7 @@ Auth::configOAuth(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 $MODULES = [
   'admin',
+  'rocketfool'
 ];
 
 foreach($MODULES as $module){
