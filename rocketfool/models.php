@@ -34,7 +34,7 @@ class Profile extends Model{
     if(isset($this->id)){
       new ProfileFollower([
         'user_id'       => $user_id,
-        'profile_id'    => $this->id,
+        'profile_id'    => $this->getId(),
         'active'        => new BooleanField(['default' => 'TRUE']),
         'last_modified' => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
         'created'       => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
@@ -48,7 +48,7 @@ class Profile extends Model{
     if(isset($this->id)){
       $follow = Models::find('profile_followers', [
         'user_id' => $user_id,
-        'profile_id' => $this->id
+        'profile_id' => $this->getId(),
         'created'     => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
       ]);
       if($follow){
