@@ -148,11 +148,9 @@ $MODULES = [
 ];
 
 foreach($MODULES as $module){
-  echo "Loading '$module' module...";
   require_once(ROOT_DIR . $module . '/models.php');
   require_once(ROOT_DIR . $module . '/controllers.php');
   require_once(ROOT_DIR . $module . '/routes.php');
-  echo "Module loaded."; 
 }
 
 //create generic model routes
