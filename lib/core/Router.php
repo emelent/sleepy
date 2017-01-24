@@ -104,6 +104,10 @@ class Router{
         $controller = new _InjectController($controller);
       }
 
+      if(gettype($controller) == 'array'){
+        $controller = new _InjectController($controller[1], $controller[0]);
+      }
+
       // just in case the given Controller is not an instance of Controller
       // best to handle it ourselves with a tidy exception than have PHP
       // output warnings and errors

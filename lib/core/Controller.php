@@ -120,23 +120,31 @@ class _InjectController extends Controller{
   /*
    *@param $callback     =  Closure/function
    */
-  public function __construct($callback){
-    $methods = ['delete', 'get', 'post', 'put'];
-    foreach($methods as $method){
-      $this->$method = function($args) use (&$callback){
-        $newArgs = [];
-        $index = 0;
-        foreach($args as $val){
-          if($index == 0){
-            $index++;
-            continue;
-          }
-          array_push($newArgs, $val);
-        }
-        return $callback(...$newArgs);
-      };
+  public function __construct($callback, $verb=null){
+    if($verb){
+      $this->addMethod(strtolower($verb), $callback);
+      return;
     }
 
+    $methods = ['delete', 'get', 'post', 'put'];
+    foreach($methods as $method){
+      $this->addMethod($method, $callback);
+    }
+  }
+
+  private function addMethod($name, $callback){
+    $this->$name = function($args) use (&$callback){
+      $newArgs = [];
+      $index = 0;
+      foreach($args as $val){
+        if($index == 0){
+          $index++;
+          continue;
+        }
+        array_push($newArgs, $val);
+      }
+      return $callback(...$newArgs);
+    };
   }
 }
 

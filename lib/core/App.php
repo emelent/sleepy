@@ -53,6 +53,7 @@ class App{
     $url = $request->getUrl();
     $args = explode('/', substr($url, 0, strlen($url) -1));
     $args = array_reverse($args);
+    $verb = strtoupper($request->getRequestMethod());
     array_pop($args);
     if($controller instanceof RoutedController){
       $runIndex = count($args) < 1;
@@ -70,13 +71,17 @@ class App{
           $method = "all_$hint";
           return $controller->$method($request, ...$args);
         }catch(UnknownMethodCallException $e){
-          throw new KnownException("No controller for route or invalid request method '$url'", ERR_BAD_ROUTE);
+          throw new KnownException("No controller for route or invalid request method $verb => '$url'", ERR_BAD_ROUTE);
         }
       }
     }
     $method = strtolower($request->getRequestMethod());
     $args = array_reverse($args);
-    return $controller->$method($request, ...$args);
+    try{
+      return $controller->$method($request, ...$args);
+    }catch(Exception $e){
+      throw new KnownException("No controller for route or invalid request method $verb => '$url'", ERR_BAD_ROUTE);
+    }
   }
 
   public static function getPdo(){
