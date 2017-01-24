@@ -137,7 +137,7 @@ class UserController extends RoutedController{
     if($user == null){
       return Response::fail("Invalid activation code.");
     }
-    $user->setActivated(true);
+    $user->setActivationDate(date('Y-m-d H:i:s'));
     $user->save();
     $code->delete();
     return Response::success("Account successfully activated.");
