@@ -62,7 +62,7 @@ class TableProperty extends CustomField{
 class CompositeKey extends TableProperty{
   public function __construct($keys){
     $superkey = implode(', ', $keys);
-    parent::__construct("PRIMARY KEY ($superkey)");
+    parent::__construct("UNIQUE ($superkey)");
   }
 }
 
