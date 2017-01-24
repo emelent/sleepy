@@ -21,7 +21,7 @@ class ProfileMeta extends ModelMeta{
       'bgColour'    => new CharField(7, ['default' => '#fffff']),
       'bgURI'       => new CharField(255, ['default' => 'NULL']),
       'geo'         => new CharField(255, ['default' => 'NULL']),
-      'website'     => new CharField(255, ['default' => 'NULL'])
+      'website'     => new CharField(255, ['default' => 'NULL']),
       'created'     => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
     ]);
 
