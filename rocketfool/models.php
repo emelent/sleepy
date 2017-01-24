@@ -1,9 +1,5 @@
 <?php
 
-$DEFAULT_NULL = ['default' => 'NULL'];
-$UNIQUE = ['unique' => true];
-$DEFAULT_CURRENT_DATE = ['default' => 'CURRENT_TIMESTAMP'];
-
 class ProfileMeta extends ModelMeta{
   
   protected $actions = [
@@ -18,10 +14,10 @@ class ProfileMeta extends ModelMeta{
       'telephone'   => new CharField(10),
       'description' => new TextField(),
       'owner'       => new ForeignKey('users'),
-      'bgColour'    => new CharField(7, ['default' => '#fffff']),
-      'bgURI'       => new CharField(255, ['default' => 'NULL']),
-      'geo'         => new CharField(255, ['default' => 'NULL']),
-      'website'     => new CharField(255, ['default' => 'NULL']),
+      'bgColour'    => new CharField(7, ['default' => '"#fffff"']),
+      'bgURI'       => new CharField(255, ['null' => true]),
+      'geo'         => new CharField(255, ['null' => true]),
+      'website'     => new CharField(255, ['null' => true]),
       'created'     => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
     ]);
 
