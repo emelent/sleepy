@@ -17,12 +17,12 @@ class ProfileMeta extends ModelMeta{
       'email'       => new CharField(255),
       'telephone'   => new CharField(10),
       'description' => new TextField(),
-      'created'     => new DateTimeField($DEFAULT_CURRENT_DATE),
       'owner'       => new ForeignKey('users'),
       'bgColour'    => new CharField(7, ['default' => '#fffff']),
-      'bgURI'       => new CharField(255, $DEFAULT_NULL),
-      'geo'         => new CharField(255, $DEFAULT_NULL),
-      'website'     => new CharField(255, $DEFAULT_NULL)
+      'bgURI'       => new CharField(255, ['default' => 'NULL']),
+      'geo'         => new CharField(255, ['default' => 'NULL']),
+      'website'     => new CharField(255, ['default' => 'NULL'])
+      'created'     => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
     ]);
 
     $this->acl['WRITE'] = ModelMeta::$OWN_WRITE;
@@ -32,9 +32,12 @@ class ProfileMeta extends ModelMeta{
 class Profile extends Model{
   public function follow($user_id){
     if(isset($this->id)){
-      new ProfileFollowers([
-        'user_id' => $user_id,
-        'profile_id' => $this->id,
+      new ProfileFollower([
+        'user_id'       => $user_id,
+        'profile_id'    => $this->id,
+        'active'        => new BooleanField(['default' => 'TRUE']),
+        'last_modified' => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
+        'created'       => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
       ]);
       return Response::success($this->name . ' followed.');
     }
@@ -46,9 +49,12 @@ class Profile extends Model{
       $follow = Models::find('profile_followers', [
         'user_id' => $user_id,
         'profile_id' => $this->id
+        'created'     => new DateTimeField(['default' => 'CURRENT_TIMESTAMP']),
       ]);
       if($follow){
-        $follow->delete();
+        $follow->setActive(false);
+        $follow->setLastModified(date('Y-m-d H:i:s'));
+        $follow->save();
       }
       return Response::success($this->name . ' unfollowed.');
     }
@@ -56,7 +62,7 @@ class Profile extends Model{
   }
 }
 
-class ProfileFollowersMeta extends ModelMeta{
+class ProfileFollowerMeta extends ModelMeta{
   public function __construct(){
     parent::__construct('profile_followers', [
       'user_id'  => new ForeignKey('users'),
