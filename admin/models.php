@@ -6,15 +6,15 @@ class UserMeta extends ModelMeta{
 
   public function __construct(){
     parent::__construct('users', [
-      'email'  => new CharField(40, ['unique' => true]),
-      'username' => new CharField(255, ['unique' => true]),
-      'uid' => new CharField(255, ['unique' => true]),
-      'password' => new CharField(255),
-      'created' => new DateTimeField(['default'=> 'CURRENT_TIMESTAMP']),
-      'activated' => new BooleanField(['default'=> 'FALSE']),
-      'group' => new IntegerField(['default'=> 1]),
-      'first_name' => new CharField(255, ['null'=>true]),  
-      'last_name' => new CharField(255, ['null'=>true]),  
+      'email'           => new CharField(40, ['unique' => true]),
+      'username'        => new CharField(255, ['unique' => true]),
+      'uid'             => new CharField(255, ['unique' => true]),
+      'password'        => new CharField(255),
+      'created'         => new DateTimeField(['default'=> 'CURRENT_TIMESTAMP']),
+      'activation_date' => new DateTimeField(['null' => true]),
+      'group'           => new IntegerField(['default'=> USER]),
+      'first_name'      => new CharField(255, ['null'=>true]),  
+      'last_name'       => new CharField(255, ['null'=>true]),  
     ]); 
     //$this->acl['READ'] = [ModelMeta::$AUTH_READ];
     $this->acl['WRITE'] = ModelMeta::$AUTH_WRITE;
@@ -47,9 +47,9 @@ class ActivationCodeMeta extends ModelMeta{
 
   public function __construct(){
     parent::__construct('activation_codes', [
-      'code' => new CharField(256),
-      'user_id' => new CustomField("INT NOT NULL REFERENCES users(id)"),
-      'expires' => new DateTimeField()
+      'code'      => new CharField(256),
+      'user_id'   => new CustomField("INT NOT NULL REFERENCES users(id)"),
+      'expires'   => new DateTimeField()
     ]);
   }
 }
