@@ -64,7 +64,7 @@ class ProfileFollowersMeta extends ModelMeta{
       new CompositeKey('user_id', 'profile_id')
     ]);
   }
-}class ProfileMeta extends Model{}
+}class ProfileFollowers extends Model{}
 
 
 class ProfileMediaMeta extends ModelMeta{
@@ -72,7 +72,7 @@ class ProfileMediaMeta extends ModelMeta{
     parent::__construct('profile_media', [
       'profile_id'  => new ForeignKey('profiles'),
       'uri'         => new CharField(255),
-      'extension'        => new CharField(3),
+      'extension'   => new CharField(3),
     ]);
   }
 }class ProfileMedia extends Model{}
