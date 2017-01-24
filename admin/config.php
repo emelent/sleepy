@@ -15,14 +15,14 @@ define('DEBUG', true);
 /* Database constants */
 define('DSN', 'mysql'); 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'u380339119_db');
-define('DB_USER', 'u380339119_api');
-define('DB_PASS', 'wb0fWa3N-<|b');
+define('DB_NAME', 'sleepy_db');
+define('DB_USER', 'root');
+define('DB_PASS', 'toor');
 
 /* Directory constants */
 define('ROOT_DIR', implode('/', $temp) . '/');
 define('LIB_DIR', ROOT_DIR . 'lib/');
-define('HOME_URL', 'http://wogen.16mb.com/api/');
+define('HOME_URL', 'http://localhost/sleepy/');
 
 /* Error codes */
 define('ERR_UNK_REQ', 0);  //unknown request method
