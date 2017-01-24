@@ -67,7 +67,7 @@ class ProfileFollowerMeta extends ModelMeta{
     parent::__construct('profile_followers', [
       'user_id'  => new ForeignKey('users'),
       'profile_id'  => new ForeignKey('profiles'),
-      new CompositeKey('user_id', 'profile_id')
+      new CompositeKey(['user_id', 'profile_id'])
     ]);
   }
 }class ProfileFollower extends Model{}
