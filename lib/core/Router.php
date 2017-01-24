@@ -18,7 +18,9 @@
  */
 class Router{
 
-  private static $routes = [];
+  private static $primary_routes = [];
+  private static $secondary_routes = [];
+
   // using '/' as domain, 
   // e.g. if using '/api/' as domain, then
   //      the domain would be '/^api\/'
@@ -26,14 +28,8 @@ class Router{
   private static $domain = '/^'; 
   private static $url = null;
 
-  /*
-   * Returns the controller routed to the current request url
-   * or null if the url does not match any route
-   *
-   * @return Controller|null
-   */
-  public static function getController($url){
-    foreach(Router::$routes as $regex  => $ctrl){
+  private static function _getController($url, $routes){
+    foreach($routes as $regex  => $ctrl){
       if(preg_match($regex, $url)){
         return $ctrl;
       }
@@ -46,11 +42,24 @@ class Router{
     $url = implode('\/', explode('/', $url));
     $url = "/^$url(.)*\/$/"; 
   
-    if(isset(Router::$routes[$url])){
-      return Router::$routes[$url];
+    if(isset($routes[$url])){
+      return $routes[$url];
     }
-    
     return null;
+  }
+
+  /*
+   * Returns the controller routed to the current request url
+   * or null if the url does not match any route
+   *
+   * @return Controller|null
+   */
+  public static function getController($url){
+    $ctrl = Router::_getController($url, Router::$primary_routes);
+    if($ctrl != null)  
+      return $ctrl;
+    
+    return Router::_getController($url, Router::$secondary_routes);
   }
 
 
@@ -66,7 +75,7 @@ class Router{
    * @throws KnownException
    * @return null
    */
-  public static function route($routes){
+  public static function _route($routes, $primary){
     foreach($routes as $url => $controller){
       //always end routing url with '/'
       if(substr($url, -1, 1) != '/')
@@ -103,7 +112,18 @@ class Router{
       
       
       Request::getInstance()->_setParams($params);
-      Router::$routes[$regex] = $controller;
+      if($primary)
+        Router::$primary_routes[$regex] = $controller;
+      else
+        Router::$secondary_routes[$regex] = $controller;
     }
   }
+
+  public static function route($routes){
+    Router::_route($routes, true);
+  } 
+
+  public static function route_secondary($routes){
+    Router::_route($routes, false);
+  } 
 }

@@ -57,7 +57,7 @@ final class ModelManager{
       $modelName = strtolower($model);
       $meta = getMeta($model);
       if($meta->shouldAutoRoute()){
-        Router::route([
+        Router::route_secondary([
           "$modelName/*" => new _ModelController($model)
         ]);
       }
